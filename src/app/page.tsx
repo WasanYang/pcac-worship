@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -16,13 +17,34 @@ import {
   teamMembers,
   accountabilityGroups,
 } from '@/lib/placeholder-data';
+import { placeholderImages } from '@/lib/placeholder-images.json';
 import { useI18n } from '@/providers/i18n-provider';
 
 export default function Dashboard() {
   const { t } = useI18n();
+  const bannerImage = placeholderImages.find((p) => p.id === 'homeBanner');
 
   return (
     <div className='flex flex-col gap-6'>
+      <div className='relative h-48 w-full overflow-hidden rounded-lg'>
+        {bannerImage && (
+          <Image
+            src={bannerImage.imageUrl}
+            alt='Prasiri Worship Team Banner'
+            fill
+            className='object-cover'
+            data-ai-hint={bannerImage.imageHint}
+          />
+        )}
+        <div className='absolute inset-0 bg-black/50' />
+        <div className='absolute inset-0 flex items-center justify-center'>
+          <div className='text-center text-white'>
+            <h1 className='text-4xl font-bold'>Prasiri Worship</h1>
+            <p className='text-lg'>Worship Team Management</p>
+          </div>
+        </div>
+      </div>
+
       <div className='grid grid-cols-2 gap-4 lg:grid-cols-4'>
         <Card>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>

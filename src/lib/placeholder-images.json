@@ -53,6 +53,12 @@
       "description": "Image for Mid-week Prayer",
       "imageUrl": "https://picsum.photos/seed/24/300/300",
       "imageHint": "prayer meeting"
+    },
+    {
+      "id": "homeBanner",
+      "description": "Banner for home page",
+      "imageUrl": "https://picsum.photos/seed/30/1200/400",
+      "imageHint": "worship band"
     }
   ]
 }
