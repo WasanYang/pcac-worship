@@ -32,14 +32,24 @@ export type TeamMember = {
   email: string;
   skills: { skill: string; progress: number }[];
   mentoringNotes: { date: string; note: string }[];
+  userId: string;
 };
 
 export type AccountabilityGroup = {
   id: string;
   name: string;
-  leader: string;
+  leaderId: string;
+  memberIds: string[];
   members: { name: string; contactStatus: 'Contacted' | 'Pending' | 'Missed' }[];
 };
+
+export type Schedule = {
+    id: string;
+    serviceId: string;
+    teamMemberId: string;
+    acceptanceStatus: 'accepted' | 'rejected' | 'pending';
+}
+
 
 export const recentSongs: Song[] = [
   { id: '1', title: "Goodness of God", author: "Bethel Music", key: "G", bpm: 126, ccli: '7117726', lastPlayed: '2024-05-12', themes: ['Goodness', 'Faithfulness'], style: 'Ballad', dynamic: 'Medium' },
@@ -52,11 +62,11 @@ export const recentSongs: Song[] = [
 ];
 
 export const teamMembers: TeamMember[] = [
-  { id: '1', name: "Alex Ray", role: "Worship Leader", avatarUrl: placeholderImages.find(p => p.id === 'user1')?.imageUrl || '', email: 'alex@example.com', skills: [{skill: 'Vocal Control', progress: 80}, {skill: 'Stage Presence', progress: 70}], mentoringNotes: [{date: '2024-05-10', note: 'Worked on transitioning between songs.'}] },
-  { id: '2', name: "Jordan Lee", role: "Keys", avatarUrl: placeholderImages.find(p => p.id === 'user2')?.imageUrl || '', email: 'jordan@example.com', skills: [{skill: 'Chord Voicing', progress: 90}, {skill: 'Improvisation', progress: 60}], mentoringNotes: [{date: '2024-05-11', note: 'Practiced using pads effectively.'}] },
-  { id: '3', name: "Casey Smith", role: "Drums", avatarUrl: placeholderImages.find(p => p.id === 'user3')?.imageUrl || '', email: 'casey@example.com', skills: [{skill: 'Timing', progress: 95}, {skill: 'Dynamic Control', progress: 85}], mentoringNotes: [] },
-  { id: '4', name: "Taylor Green", role: "Vocalist", avatarUrl: placeholderImages.find(p => p.id === 'user4')?.imageUrl || '', email: 'taylor@example.com', skills: [{skill: 'Harmony', progress: 88}, {skill: 'Pitch Accuracy', progress: 92}], mentoringNotes: [{date: '2024-05-15', note: 'Improving confidence on high notes.'}] },
-  { id: '5', name: "Morgan Blue", role: "Guitar (Electric)", avatarUrl: placeholderImages.find(p => p.id === 'user5')?.imageUrl || '', email: 'morgan@example.com', skills: [{skill: 'Tone Shaping', progress: 75}, {skill: 'Lead Lines', progress: 65}], mentoringNotes: [] },
+  { id: '1', name: "Alex Ray", role: "Worship Leader", avatarUrl: placeholderImages.find(p => p.id === 'user1')?.imageUrl || '', email: 'alex@example.com', skills: [{skill: 'Vocal Control', progress: 80}, {skill: 'Stage Presence', progress: 70}], mentoringNotes: [{date: '2024-05-10', note: 'Worked on transitioning between songs.'}], userId: '1' },
+  { id: '2', name: "Jordan Lee", role: "Keys", avatarUrl: placeholderImages.find(p => p.id === 'user2')?.imageUrl || '', email: 'jordan@example.com', skills: [{skill: 'Chord Voicing', progress: 90}, {skill: 'Improvisation', progress: 60}], mentoringNotes: [{date: '2024-05-11', note: 'Practiced using pads effectively.'}], userId: '2' },
+  { id: '3', name: "Casey Smith", role: "Drums", avatarUrl: placeholderImages.find(p => p.id === 'user3')?.imageUrl || '', email: 'casey@example.com', skills: [{skill: 'Timing', progress: 95}, {skill: 'Dynamic Control', progress: 85}], mentoringNotes: [], userId: '3' },
+  { id: '4', name: "Taylor Green", role: "Vocalist", avatarUrl: placeholderImages.find(p => p.id === 'user4')?.imageUrl || '', email: 'taylor@example.com', skills: [{skill: 'Harmony', progress: 88}, {skill: 'Pitch Accuracy', progress: 92}], mentoringNotes: [{date: '2024-05-15', note: 'Improving confidence on high notes.'}], userId: '4' },
+  { id: '5', name: "Morgan Blue", role: "Guitar (Electric)", avatarUrl: placeholderImages.find(p => p.id === 'user5')?.imageUrl || '', email: 'morgan@example.com', skills: [{skill: 'Tone Shaping', progress: 75}, {skill: 'Lead Lines', progress: 65}], mentoringNotes: [], userId: '5' },
 ];
 
 export const upcomingServices: Service[] = [
@@ -67,6 +77,6 @@ export const upcomingServices: Service[] = [
 ];
 
 export const accountabilityGroups: AccountabilityGroup[] = [
-  { id: '1', name: "The Iron Men", leader: "Alex Ray", members: [{ name: "Jordan Lee", contactStatus: 'Contacted' }, { name: "Casey Smith", contactStatus: 'Pending' }] },
-  { id: '2', name: "Sisters in Spirit", leader: "Taylor Green", members: [{ name: "Morgan Blue", contactStatus: 'Contacted' }] },
+  { id: '1', name: "The Iron Men", leaderId: "1", memberIds: ['2', '3'], members: [{ name: "Jordan Lee", contactStatus: 'Contacted' }, { name: "Casey Smith", contactStatus: 'Pending' }] },
+  { id: '2', name: "Sisters in Spirit", leaderId: "4", memberIds: ['5'], members: [{ name: "Morgan Blue", contactStatus: 'Contacted' }] },
 ];
