@@ -17,9 +17,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useI18n } from "@/providers/i18n-provider";
-import { Languages, LogOut } from "lucide-react";
+import { Languages, LogOut, Settings } from "lucide-react";
 import { useAuth, useUser } from "@/firebase";
 import { signOut } from "firebase/auth";
+import Link from "next/link";
 
 export function UserNav() {
   const { setLocale, t } = useI18n();
@@ -59,14 +60,17 @@ export function UserNav() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem>
-              {t('profile')}
+            <DropdownMenuItem asChild>
+                <Link href="/settings">{t('profile')}</Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
               {t('billing')}
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              {t('settings')}
+             <DropdownMenuItem asChild>
+               <Link href="/settings">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>{t('settings')}</span>
+               </Link>
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />

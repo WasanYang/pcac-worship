@@ -8,7 +8,6 @@ import {
   Calendar,
   Users,
   HeartHandshake,
-  Cog,
   Music,
 } from "lucide-react";
 import {
@@ -66,22 +65,8 @@ export function SidebarNav() {
             })}
             </div>
         </nav>
-        <div className="mt-auto flex flex-col gap-2 p-2 lg:p-4 border-t">
-            <Tooltip>
-            <TooltipTrigger asChild>
-                <Link
-                href="/settings"
-                className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                    pathname === "/settings" && "bg-muted text-primary"
-                )}
-                >
-                <Cog className="h-4 w-4" />
-                <span className="truncate">{t('settings')}</span>
-                </Link>
-            </TooltipTrigger>
-            <TooltipContent side="right">{t('settings')}</TooltipContent>
-            </Tooltip>
+        <div className="mt-auto p-2 lg:p-4 border-t">
+            {/* Settings link is now in UserNav */}
         </div>
     </div>
     </TooltipProvider>
