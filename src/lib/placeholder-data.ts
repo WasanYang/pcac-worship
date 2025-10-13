@@ -1,3 +1,4 @@
+
 import { placeholderImages } from './placeholder-images.json';
 
 export type Song = {
@@ -35,6 +36,7 @@ export type TeamMember = {
   skills: { skill: string; progress: number }[];
   mentoringNotes: { date: string; note: string }[];
   userId: string;
+  blockoutDates?: string[];
 };
 
 export type AccountabilityGroup = {

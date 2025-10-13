@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,14 +23,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { useI18n } from "@/providers/i18n-provider";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import type { TeamMember } from "@/lib/placeholder-data";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, Timestamp } from "firebase/firestore";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import type { DateRange } from "react-day-picker";
 
 const profileFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -43,6 +42,7 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDates, setSelectedDates] = useState<Date[] | undefined>([]);
+  const [isSavingBlockout, setIsSavingBlockout] = useState(false);
 
   const teamMemberRef = useMemoFirebase(
     () => (user ? doc(firestore, "team_members", user.uid) : null),
@@ -56,6 +56,16 @@ export default function SettingsPage() {
       name: teamMember?.name || "",
     },
   });
+
+  // Effect to update forms when teamMember data loads
+  useEffect(() => {
+    if (teamMember) {
+      profileForm.reset({ name: teamMember.name });
+      if (teamMember.blockoutDates) {
+        setSelectedDates(teamMember.blockoutDates.map(d => new Date(d)));
+      }
+    }
+  }, [teamMember, profileForm]);
 
   const handleProfileUpdate = async (values: z.infer<typeof profileFormSchema>) => {
     if (!teamMemberRef) return;
@@ -77,6 +87,30 @@ export default function SettingsPage() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSaveBlockoutDates = async () => {
+    if (!teamMemberRef) return;
+    setIsSavingBlockout(true);
+    try {
+        const dateStrings = selectedDates?.map(date => date.toISOString().split('T')[0]);
+        await updateDoc(teamMemberRef, {
+            blockoutDates: dateStrings
+        });
+        toast({
+            title: "Blockout Dates Saved",
+            description: "Your availability has been updated."
+        });
+    } catch (error) {
+        console.error("Error saving blockout dates:", error);
+        toast({
+            variant: "destructive",
+            title: "Save Failed",
+            description: "Could not save your blockout dates. Please try again."
+        });
+    } finally {
+        setIsSavingBlockout(false);
     }
   };
   
@@ -189,6 +223,7 @@ export default function SettingsPage() {
                         selected={selectedDates}
                         onSelect={setSelectedDates}
                         className="rounded-md border"
+                        disabled={isTeamMemberLoading}
                     />
                     {selectedDates && selectedDates.length > 0 && (
                         <div className="w-full max-w-md rounded-lg border p-4">
@@ -202,7 +237,9 @@ export default function SettingsPage() {
                     )}
                 </CardContent>
                  <CardFooter>
-                    <Button>Save Blockout Dates</Button>
+                    <Button onClick={handleSaveBlockoutDates} disabled={isSavingBlockout || isTeamMemberLoading}>
+                        {isSavingBlockout ? 'Saving...' : 'Save Blockout Dates'}
+                    </Button>
                 </CardFooter>
             </Card>
         </TabsContent>

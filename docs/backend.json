@@ -131,6 +131,14 @@
         "userId": {
           "type": "string",
           "description": "The user ID (Firebase Auth uid) associated with the team member. Relates to the external authentication system."
+        },
+        "blockoutDates": {
+          "type": "array",
+          "description": "An array of dates when the team member is unavailable.",
+          "items": {
+            "type": "string",
+            "format": "date"
+          }
         }
       },
       "required": [
