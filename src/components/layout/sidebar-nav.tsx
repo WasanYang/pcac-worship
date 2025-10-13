@@ -15,10 +15,8 @@ import { cn } from "@/lib/utils";
 import { useI18n } from "@/providers/i18n-provider";
 import { useUser, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
+import type { TeamMember } from "@/lib/placeholder-data";
 
-type UserRole = {
-  role: string;
-}
 
 export const navItems = [
   { href: "/", labelKey: "dashboard", icon: LayoutDashboard, adminOnly: false },
@@ -35,10 +33,10 @@ export function SidebarNav() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const userRoleRef = useMemoFirebase(() => user ? doc(firestore, 'user_roles', user.uid) : null, [firestore, user]);
-  const { data: userRole } = useDoc<UserRole>(userRoleRef);
+  const teamMemberRef = useMemoFirebase(() => user ? doc(firestore, 'team_members', user.uid) : null, [firestore, user]);
+  const { data: teamMember } = useDoc<TeamMember>(teamMemberRef);
   
-  const isAdmin = userRole?.role === 'Admin';
+  const isAdmin = Array.isArray(teamMember?.role) && teamMember.role.includes('Admin');
 
   return (
     <div className="flex h-full max-h-screen flex-col gap-2">
