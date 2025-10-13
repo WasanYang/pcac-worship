@@ -68,5 +68,6 @@
   "addMember": "Add Member",
   "skills": "Skills",
   "billing": "Billing",
-  "logOut": "Log out"
+  "logOut": "Log out",
+  "admin": "Admin"
 }

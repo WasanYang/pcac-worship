@@ -9,30 +9,38 @@ import {
   Users,
   HeartHandshake,
   Music,
+  Shield,
 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider
-} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/providers/i18n-provider";
+import { useUser, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
+
+type UserRole = {
+  role: string;
+}
 
 export const navItems = [
-  { href: "/", labelKey: "dashboard", icon: LayoutDashboard },
-  { href: "/songs", labelKey: "songs", icon: ListMusic },
-  { href: "/services", labelKey: "services", icon: Calendar },
-  { href: "/team", labelKey: "team", icon: Users },
-  { href: "/accountability", labelKey: "accountability", icon: HeartHandshake },
+  { href: "/", labelKey: "dashboard", icon: LayoutDashboard, adminOnly: false },
+  { href: "/songs", labelKey: "songs", icon: ListMusic, adminOnly: false },
+  { href: "/services", labelKey: "services", icon: Calendar, adminOnly: false },
+  { href: "/team", labelKey: "team", icon: Users, adminOnly: false },
+  { href: "/accountability", labelKey: "accountability", icon: HeartHandshake, adminOnly: false },
+  { href: "/admin", labelKey: "admin", icon: Shield, adminOnly: true },
 ];
 
 export function SidebarNav() {
   const pathname = usePathname();
   const { t } = useI18n();
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const userRoleRef = useMemoFirebase(() => user ? doc(firestore, 'user_roles', user.uid) : null, [firestore, user]);
+  const { data: userRole } = useDoc<UserRole>(userRoleRef);
+  
+  const isAdmin = userRole?.role === 'Admin';
 
   return (
-    <TooltipProvider>
     <div className="flex h-full max-h-screen flex-col gap-2">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold">
@@ -43,6 +51,9 @@ export function SidebarNav() {
         <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
                 {navItems.map((item) => {
+                    if (item.adminOnly && !isAdmin) {
+                        return null;
+                    }
                     const isActive = pathname === item.href;
                     const label = t(item.labelKey as any);
                     return (
@@ -62,6 +73,5 @@ export function SidebarNav() {
             </nav>
         </div>
     </div>
-    </TooltipProvider>
   );
 }
