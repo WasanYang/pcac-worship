@@ -19,7 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/providers/i18n-provider";
 
-const navItems = [
+export const navItems = [
   { href: "/", labelKey: "dashboard", icon: LayoutDashboard },
   { href: "/songs", labelKey: "songs", icon: ListMusic },
   { href: "/services", labelKey: "services", icon: Calendar },

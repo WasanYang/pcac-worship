@@ -20,5 +20,6 @@
   "date": "Date",
   "worshipLeader": "Worship Leader",
   "recentlyAddedSongs": "Recently Added Songs",
-  "recentlyAddedSongsDesc": "New songs that have been recently added to the library."
+  "recentlyAddedSongsDesc": "New songs that have been recently added to the library.",
+  "more": "More"
 }
