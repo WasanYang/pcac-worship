@@ -37,7 +37,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 <Header />
                 <main className={cn(
                   "flex-1 gap-4 p-4 sm:px-6 sm:py-0 md:gap-8",
-                  isClient && isMobile ? "pb-24" : "pb-4"
+                  isClient && isMobile && "pb-20",
                 )}>
                     {children}
                 </main>
