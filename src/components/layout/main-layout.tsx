@@ -27,50 +27,46 @@ export default function MainLayout({
     <SidebarProvider>
       <div className='relative min-h-screen w-full bg-muted/40 md:flex'>
         {!isMobile && (
-            <Sidebar side='left' className='flex-shrink-0 w-64 border-r'>
-              <SidebarNav />
-            </Sidebar>
+          <Sidebar side='left' className='flex-shrink-0 w-64 border-r'>
+            <SidebarNav />
+          </Sidebar>
         )}
-        
+
         <div className='flex flex-col flex-1'>
-            <header className='sticky top-0 z-30 flex h-14 items-center justify-end gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden'>
-                {/* UserNav moved to main content */}
-            </header>
-            <main
-                className={cn(
-                'flex-1 flex flex-col gap-4 p-4 md:gap-6 pt-0 md:pt-6',
-                isClient && isMobile ? 'pb-24' : 'pb-4'
-                )}
-            >
-                <div className='relative h-48 md:h-64 w-full rounded-lg overflow-hidden -mx-4 md:mx-0 mt-0'>
-                    {bannerImage && (
-                        <Image
-                        src={bannerImage.imageUrl}
-                        alt='Prasiri Worship Team Banner'
-                        fill
-                        className='object-cover'
-                        data-ai-hint={bannerImage.imageHint}
-                        />
-                    )}
-                    <div className='absolute inset-0 bg-black/50' />
-                    <div className='absolute inset-0 flex items-center justify-center'>
-                        <div className='text-center text-white'>
-                        <h1 className='text-4xl font-bold'>Prasiri Worship</h1>
-                        <p className='text-lg'>Worship Team Management</p>
-                        </div>
-                    </div>
+          <header className='sticky top-0 z-30 flex h-14 items-center justify-end gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden'>
+            {/* UserNav moved to main content */}
+          </header>
+          <main
+            className={cn(
+              'flex-1 flex flex-col gap-4 p-4 md:gap-6 pt-0 md:pt-6',
+              isClient && isMobile ? 'pb-24' : 'pb-4'
+            )}
+          >
+            <div className='relative h-48 md:h-64 w-full rounded-lg overflow-hidden -mx-4 md:mx-0 mt-0'>
+              {bannerImage && (
+                <Image
+                  src={bannerImage.imageUrl}
+                  alt='Prasiri Worship Team Banner'
+                  fill
+                  className='object-cover'
+                  data-ai-hint={bannerImage.imageHint}
+                />
+              )}
+              <div className='absolute inset-0 bg-black/50' />
+              <div className='absolute inset-0 flex items-center justify-center'>
+                <div className='text-center text-white'>
+                  <h1 className='text-4xl font-bold'>Prasiri Worship</h1>
+                  <p className='text-lg'>Worship Team Management</p>
                 </div>
+              </div>
+              <div className='flex justify-end -mt-4 md:mt-4 md:mr-4'>
+                <UserNav />
+              </div>
+            </div>
 
-                <div className='flex justify-end -mt-4 md:mt-0'>
-                    <UserNav />
-                </div>
-                
-                <div className='flex-1'>
-                  {children}
-                </div>
-            </main>
+            <div className='flex-1'>{children}</div>
+          </main>
         </div>
-
 
         {isClient && isMobile && (
           <div className='fixed bottom-0 left-0 z-40 w-full border-t bg-background/95 backdrop-blur-sm'>
