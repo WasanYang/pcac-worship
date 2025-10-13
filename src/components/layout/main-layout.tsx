@@ -33,16 +33,16 @@ export default function MainLayout({
         )}
         
         <div className='flex flex-col flex-1'>
-            <header className='sticky top-0 z-30 flex h-14 items-center justify-end gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6'>
-                <UserNav />
+            <header className='sticky top-0 z-30 flex h-14 items-center justify-end gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden'>
+                {/* UserNav moved to main content */}
             </header>
             <main
                 className={cn(
-                'flex-1 gap-4 p-4 md:gap-6',
+                'flex-1 flex flex-col gap-4 p-4 md:gap-6 pt-0 md:pt-6',
                 isClient && isMobile ? 'pb-24' : 'pb-4'
                 )}
             >
-                <div className='relative h-48 md:h-64 w-full mb-6 rounded-lg overflow-hidden'>
+                <div className='relative h-48 md:h-64 w-full rounded-lg overflow-hidden -mx-4 md:mx-0 mt-0'>
                     {bannerImage && (
                         <Image
                         src={bannerImage.imageUrl}
@@ -60,7 +60,14 @@ export default function MainLayout({
                         </div>
                     </div>
                 </div>
-                {children}
+
+                <div className='flex justify-end -mt-4 md:mt-0'>
+                    <UserNav />
+                </div>
+                
+                <div className='flex-1'>
+                  {children}
+                </div>
             </main>
         </div>
 
