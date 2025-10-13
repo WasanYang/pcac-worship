@@ -1,0 +1,439 @@
+{
+  "entities": {
+    "Song": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Song",
+      "type": "object",
+      "description": "Represents a song with details such as title, author, key, and attachments.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Song entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the song."
+        },
+        "author": {
+          "type": "string",
+          "description": "The author of the song."
+        },
+        "key": {
+          "type": "string",
+          "description": "The key of the song."
+        },
+        "bpm": {
+          "type": "number",
+          "description": "The beats per minute of the song."
+        },
+        "ccliNumber": {
+          "type": "string",
+          "description": "The CCLI (Christian Copyright Licensing International) number of the song."
+        },
+        "chordChartUrl": {
+          "type": "string",
+          "description": "URL of the chord chart for the song.",
+          "format": "uri"
+        },
+        "audioFileUrl": {
+          "type": "string",
+          "description": "URL of the audio file for the song.",
+          "format": "uri"
+        },
+        "youtubeLink": {
+          "type": "string",
+          "description": "Link to the song on YouTube.",
+          "format": "uri"
+        },
+        "themes": {
+          "type": "string",
+          "description": "Themes associated with the song."
+        },
+        "style": {
+          "type": "string",
+          "description": "The style of the song (e.g., contemporary, gospel)."
+        },
+        "dynamic": {
+          "type": "string",
+          "description": "The dynamic range of the song (e.g., soft, loud)."
+        },
+        "lastPlayed": {
+          "type": "string",
+          "description": "The date the song was last played.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "author"
+      ]
+    },
+    "Service": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Service",
+      "type": "object",
+      "description": "Represents a worship service with a setlist of songs and associated information.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Service entity."
+        },
+        "date": {
+          "type": "string",
+          "description": "The date and time of the service.",
+          "format": "date-time"
+        },
+        "theme": {
+          "type": "string",
+          "description": "The theme of the service."
+        },
+        "songIds": {
+          "type": "array",
+          "description": "References to Songs. (Relationship: Service 1:N Song)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "date"
+      ]
+    },
+    "TeamMember": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TeamMember",
+      "type": "object",
+      "description": "Represents a team member involved in worship services.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the TeamMember entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the team member."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the team member.",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the team member (e.g., Worship Leader, Keys, Drum, Vocalist)."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The user ID (Firebase Auth uid) associated with the team member. Relates to the external authentication system."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "role"
+      ]
+    },
+    "Schedule": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Schedule",
+      "type": "object",
+      "description": "Represents a team member's schedule for a specific service.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Schedule entity."
+        },
+        "serviceId": {
+          "type": "string",
+          "description": "Reference to Service. (Relationship: Service 1:N Schedule)"
+        },
+        "teamMemberId": {
+          "type": "string",
+          "description": "Reference to TeamMember. (Relationship: TeamMember 1:N Schedule)"
+        },
+        "acceptanceStatus": {
+          "type": "string",
+          "description": "The acceptance status of the team member for the scheduled service (e.g., accepted, rejected, pending)."
+        }
+      },
+      "required": [
+        "id",
+        "serviceId",
+        "teamMemberId",
+        "acceptanceStatus"
+      ]
+    },
+    "SkillFocusSession": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SkillFocusSession",
+      "type": "object",
+      "description": "Represents a skill focus session for a team member.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the SkillFocusSession entity."
+        },
+        "teamMemberId": {
+          "type": "string",
+          "description": "Reference to TeamMember. (Relationship: TeamMember 1:N SkillFocusSession)"
+        },
+        "date": {
+          "type": "string",
+          "description": "The date of the skill focus session.",
+          "format": "date-time"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes from the skill focus session."
+        }
+      },
+      "required": [
+        "id",
+        "teamMemberId",
+        "date",
+        "notes"
+      ]
+    },
+    "PeerGroup": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PeerGroup",
+      "type": "object",
+      "description": "Represents a peer group for spiritual support and accountability.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the PeerGroup entity."
+        },
+        "leaderId": {
+          "type": "string",
+          "description": "Reference to TeamMember who is the leader. (Relationship: TeamMember 1:N PeerGroup)"
+        },
+        "memberIds": {
+          "type": "array",
+          "description": "References to TeamMembers in the peer group. (Relationship: PeerGroup N:N TeamMember)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "leaderId"
+      ]
+    },
+    "ContactStatus": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ContactStatus",
+      "type": "object",
+      "description": "Represents the contact status update for a peer group member.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ContactStatus entity."
+        },
+        "peerGroupId": {
+          "type": "string",
+          "description": "Reference to PeerGroup. (Relationship: PeerGroup 1:N ContactStatus)"
+        },
+        "teamMemberId": {
+          "type": "string",
+          "description": "Reference to TeamMember. (Relationship: TeamMember 1:N ContactStatus)"
+        },
+        "date": {
+          "type": "string",
+          "description": "The date of the contact status update.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The contact status (e.g., contacted, not contacted)."
+        }
+      },
+      "required": [
+        "id",
+        "peerGroupId",
+        "teamMemberId",
+        "date",
+        "status"
+      ]
+    },
+    "UserRole": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserRole",
+      "type": "object",
+      "description": "Represents the roles and permissions for users in the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserRole entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to TeamMember. (Relationship: TeamMember 1:1 UserRole).  This will be the Firebase Auth 'uid'."
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user (e.g., Admin, Worship Leader, Team Member)."
+        },
+        "permissions": {
+          "type": "array",
+          "description": "List of permissions granted to the user role.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "role"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/songs/{songId}",
+        "definition": {
+          "entityName": "Song",
+          "schema": {
+            "$ref": "#/backend/entities/Song"
+          },
+          "description": "Stores song details. Accessible by users with the appropriate role.  `songId` is the unique song identifier.",
+          "params": [
+            {
+              "name": "songId",
+              "description": "Unique identifier for the song."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/services/{serviceId}",
+        "definition": {
+          "entityName": "Service",
+          "schema": {
+            "$ref": "#/backend/entities/Service"
+          },
+          "description": "Stores worship service details. Accessible by users with the appropriate role.",
+          "params": [
+            {
+              "name": "serviceId",
+              "description": "Unique identifier for the service."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/team_members/{teamMemberId}",
+        "definition": {
+          "entityName": "TeamMember",
+          "schema": {
+            "$ref": "#/backend/entities/TeamMember"
+          },
+          "description": "Stores team member profiles. Includes 'userId' for authentication link to Firebase Auth.  Accessible by the team member themselves or admins. `teamMemberId` is the unique team member identifier.",
+          "params": [
+            {
+              "name": "teamMemberId",
+              "description": "Unique identifier for the team member."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/schedules/{scheduleId}",
+        "definition": {
+          "entityName": "Schedule",
+          "schema": {
+            "$ref": "#/backend/entities/Schedule"
+          },
+          "description": "Stores team member schedules for services. Accessible by team members and admins.",
+          "params": [
+            {
+              "name": "scheduleId",
+              "description": "Unique identifier for the schedule."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/skill_focus_sessions/{skillFocusSessionId}",
+        "definition": {
+          "entityName": "SkillFocusSession",
+          "schema": {
+            "$ref": "#/backend/entities/SkillFocusSession"
+          },
+          "description": "Stores skill focus session details. Accessible by team members and admins.",
+          "params": [
+            {
+              "name": "skillFocusSessionId",
+              "description": "Unique identifier for the skill focus session."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/peer_groups/{peerGroupId}",
+        "definition": {
+          "entityName": "PeerGroup",
+          "schema": {
+            "$ref": "#/backend/entities/PeerGroup"
+          },
+          "description": "Stores peer group information. Includes 'memberIds' array for authorization independence. Accessible by group members and leaders.",
+          "params": [
+            {
+              "name": "peerGroupId",
+              "description": "Unique identifier for the peer group."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/peer_groups/{peerGroupId}/contact_statuses/{contactStatusId}",
+        "definition": {
+          "entityName": "ContactStatus",
+          "schema": {
+            "$ref": "#/backend/entities/ContactStatus"
+          },
+          "description": "Stores contact status updates for peer group members. Accessible by peer group leaders.  Parent `peer_groups` document contains `memberIds` which is denormalized authorization data. `contactStatusId` is the unique contact status identifier.",
+          "params": [
+            {
+              "name": "peerGroupId",
+              "description": "Unique identifier for the peer group."
+            },
+            {
+              "name": "contactStatusId",
+              "description": "Unique identifier for the contact status."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/user_roles/{userId}",
+        "definition": {
+          "entityName": "UserRole",
+          "schema": {
+            "$ref": "#/backend/entities/UserRole"
+          },
+          "description": "Stores user roles. Document existence determines role. 'userId' matches Firebase Auth uid. Accessible only by admins.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The Firebase Auth user ID."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This Firestore data structure is designed to support the Prasiri Worship Manager application, focusing on scalability, security, and ease of maintenance. It adheres to the core design principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are Not Filters).  Authorization Independence is achieved through denormalization, and QAPs are addressed through structural segregation and membership models. The structure also accounts for user roles (Admin, Worship Leader, Team Member) and their corresponding permissions.\n\n**Authorization Independence:**\n*   User roles and team membership are denormalized where needed to avoid using `get()` calls in security rules.  For example, `TeamMember` documents are located at `/team_members/{teamMemberId}` but contain a denormalized `userId` linking them to the `/user_roles/{userId}` collection.  This lets rules validate a `TeamMember` based on their Firebase Auth `uid` and their presence in a `PeerGroup` or `Service` without needing to read other documents.\n\n**Structural Segregation:**\n*   The structure separates data with different access requirements into distinct collections.  `/songs` are global and accessible based on roles.  `/team_members/{teamMemberId}` are secured based on the `userId` field matching `request.auth.uid`. \n\n**Access Modeling:**\n*   **Private Data:** The `TeamMember` entity utilizes a path-based ownership model, ensuring that only the authenticated user can access their own `TeamMember` data.\n*   **Collaborative Data:** The `PeerGroup` entity uses a membership map (`memberIds` in the document itself, considered denormalized for access control purposes since the *presence* of the ID implies membership) to manage access.  The `ContactStatus` subcollection is then accessible to the `PeerGroup` members.\n*   **Global Roles (DBAC):** The `UserRole` entity uses a dedicated collection (`/user_roles/{userId}`) to define user roles, leveraging the 'Existence over Content' principle. The document's existence confirms the user's role.\n\n**QAPs Support:**\n*   The segregation of roles in `/user_roles/{userId}` enables secure `list` operations.  Rules can check if a document exists at that path to grant elevated permissions, without filtering.\n\nThis design enables secure and efficient Firestore security rules that are easy to understand, maintain, and debug. By denormalizing critical authorization information and strategically segregating data, the system minimizes the need for complex rule logic and ensures that data access is always appropriately controlled."
+  }
+}

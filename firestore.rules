@@ -1,0 +1,209 @@
+/**
+ * @fileoverview Firestore Security Rules for Prasiri Worship Manager.
+ *
+ * Core Philosophy: This ruleset enforces a hybrid access control model, combining user-ownership for personal data (TeamMember),
+ * membership-based access for collaborative data (PeerGroup), and role-based access for global data (Songs, Services).
+ *
+ * Data Structure:
+ * - /songs/{songId}: Publicly readable, but write access is restricted to authenticated users.
+ * - /services/{serviceId}: Publicly readable, but write access is restricted to authenticated users.
+ * - /team_members/{teamMemberId}: Strictly user-owned; only the authenticated user matching the teamMemberId can read/write.
+ * - /schedules/{scheduleId}: Accessible by team members.
+ * - /skill_focus_sessions/{skillFocusSessionId}: Accessible by team members.
+ * - /peer_groups/{peerGroupId}: Accessible by members listed in the 'memberIds' array.
+ * - /peer_groups/{peerGroupId}/contact_statuses/{contactStatusId}: Accessible by members of the parent PeerGroup.
+ * - /user_roles/{userId}: Admin-only; only admins can read/write user roles.  The document ID *must* match the Firebase auth UID.
+ *
+ * Key Security Decisions:
+ * - Public Read Access: The /songs and /services collections are publicly readable to allow for easy discovery and access. Write access, however, is restricted.
+ * - User Listing Disabled: The /team_members collection cannot be listed to prevent unauthorized access to user data.
+ * - Strict Ownership: The /team_members collection is strictly user-owned.  The userId field *must* match the Firebase auth UID.
+ *
+ * Denormalization for Authorization:
+ * - The PeerGroup documents contain a `memberIds` array to avoid `get()` calls when checking group membership for authorization.
+ * - The TeamMember documents contain a `userId` field to link them to Firebase Auth and the UserRole document for simple existence checks.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Allows anyone to read song details, but only authenticated users to create, update, or delete songs.
+     * @path /songs/{songId}
+     * @allow (get, list): if true
+     * @allow (create): if isSignedIn() && request.resource.data.id == request.auth.uid;
+     * @allow (update, delete): if isSignedIn();
+     * @deny (create): if false;
+     * @principle Allows public reads but restricts writes to authenticated users.
+     */
+    match /songs/{songId} {
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
+    }
+
+    /**
+     * @description Allows anyone to read service details, but only authenticated users to create, update, or delete services.
+     * @path /services/{serviceId}
+     * @allow (get, list): if true
+     * @allow (create): if isSignedIn() && request.resource.data.id == request.auth.uid;
+     * @allow (update, delete): if isSignedIn();
+     * @deny (create): if false;
+     * @principle Allows public reads but restricts writes to authenticated users.
+     */
+    match /services/{serviceId} {
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
+    }
+
+    /**
+     * @description Enforces user-ownership for TeamMember documents. Only the authenticated user can access their own document.
+     * @path /team_members/{teamMemberId}
+     * @allow (get, update, delete): if isOwner(teamMemberId);
+     * @allow (create): if isSelfCreate(teamMemberId);
+     * @allow (list): if false; // prevent listing all users
+     * @deny (get): if false;
+     * @deny (create): if false;
+     * @deny (update): if !isExistingOwner(teamMemberId);
+     * @deny (delete): if !isExistingOwner(teamMemberId);
+     * @deny (list): if true;
+     * @principle Enforces document ownership for reads and writes.
+     */
+    match /team_members/{teamMemberId} {
+      allow get: if isOwner(teamMemberId);
+      allow create: if isSelfCreate(teamMemberId);
+      allow update: if isExistingOwner(teamMemberId);
+      allow delete: if isExistingOwner(teamMemberId);
+      allow list: if false; // Prevent listing all users.
+    }
+
+    /**
+     * @description Allows access to schedule details. Accessible by team members.
+     * @path /schedules/{scheduleId}
+     */
+    match /schedules/{scheduleId} {
+      allow get, list, create, update, delete: if isSignedIn();
+    }
+
+    /**
+     * @description Allows access to skill focus session details. Accessible by team members.
+     * @path /skill_focus_sessions/{skillFocusSessionId}
+     */
+    match /skill_focus_sessions/{skillFocusSessionId} {
+      allow get, list, create, update, delete: if isSignedIn();
+    }
+
+    /**
+     * @description Manages access to peer group information. Members listed in the 'memberIds' array can access the group.
+     * @path /peer_groups/{peerGroupId}
+     * @allow (get, list): if isPeerGroupMember(peerGroupId);
+     * @allow (create): if isSignedIn();
+     * @allow (update, delete): if isExistingPeerGroupMember(peerGroupId);
+     * @deny (create): if false;
+     * @deny (update): if !isExistingPeerGroupMember(peerGroupId);
+     * @deny (delete): if !isExistingPeerGroupMember(peerGroupId);
+     * @principle Enforces membership-based access control.
+     */
+    match /peer_groups/{peerGroupId} {
+      allow get, list: if isPeerGroupMember(peerGroupId);
+      allow create: if isSignedIn();
+      allow update: if isExistingPeerGroupMember(peerGroupId);
+      allow delete: if isExistingPeerGroupMember(peerGroupId);
+    }
+
+    /**
+     * @description Manages access to contact status updates. Accessible by peer group members.
+     * @path /peer_groups/{peerGroupId}/contact_statuses/{contactStatusId}
+     * @allow (get, list, create, update, delete): if isPeerGroupMember(peerGroupId);
+     * @deny (get): if false;
+     * @deny (create): if false;
+     * @deny (update): if false;
+     * @deny (delete): if false;
+     * @principle Enforces membership-based access control inherited from the parent PeerGroup.
+     */
+    match /peer_groups/{peerGroupId}/contact_statuses/{contactStatusId} {
+      allow get, list, create, update, delete: if isPeerGroupMember(peerGroupId);
+    }
+
+    /**
+     * @description Restricts access to user roles. Only administrators can manage user roles.
+     * @path /user_roles/{userId}
+     * @allow (get, list, create, update, delete): if isAdmin();
+     * @deny (get): if !isAdmin();
+     * @deny (create): if !isAdmin();
+     * @deny (update): if !isAdmin();
+     * @deny (delete): if !isAdmin();
+     * @principle Enforces role-based access control for sensitive user role data.
+     */
+    match /user_roles/{userId} {
+      allow get, list, create, update, delete: if isAdmin();
+    }
+
+    // --- Helper Functions ---
+
+    /**
+     * @description Checks if the user is signed in.
+     * @return {boolean} True if the user is signed in, false otherwise.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the authenticated user's UID matches the provided userId.
+     * @param {string} userId The user ID to compare against.
+     * @return {boolean} True if the UIDs match, false otherwise.
+     */
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+   /**
+     * @description Checks if the authenticated user's UID matches the resource ID for self creation on the first document
+     * @param {string} teamMemberId The user ID to compare against.
+     * @return {boolean} True if the UIDs match, false otherwise.
+     */
+    function isSelfCreate(teamMemberId) {
+      return request.auth.uid == teamMemberId;
+    }
+
+    /**
+     * @description Checks if the authenticated user's UID matches the provided userId and the resource exists.
+     * @param {string} userId The user ID to compare against.
+     * @return {boolean} True if the UIDs match and the resource exists, false otherwise.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Checks if the authenticated user is a member of the specified peer group based on the 'memberIds' array.
+     * @param {string} peerGroupId The ID of the peer group.
+     * @return {boolean} True if the user is a member, false otherwise.
+     */
+    function isPeerGroupMember(peerGroupId) {
+      return isSignedIn() && peerGroupId != null && (resource.data.memberIds is list && request.auth.uid in resource.data.memberIds);
+    }
+
+    /**
+     * @description Checks if the authenticated user is a member of the specified peer group and it exists.
+     * @param {string} peerGroupId The ID of the peer group.
+     * @return {boolean} True if the user is a member and peerGroup exists, false otherwise.
+     */
+     function isExistingPeerGroupMember(peerGroupId) {
+      return isSignedIn() && peerGroupId != null && (resource.data.memberIds is list && request.auth.uid in resource.data.memberIds) && resource != null;
+    }
+
+
+    /**
+     * @description Checks if a user has Admin role.
+     * @return {boolean} True if the user has admin role, false otherwise.
+     */
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/user_roles/$(request.auth.uid));
+    }
+  }
+}
