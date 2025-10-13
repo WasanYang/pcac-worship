@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { navItems } from "@/components/layout/sidebar-nav";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useI18n } from "@/providers/i18n-provider";
+import { AlignJustify } from "lucide-react";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
@@ -66,21 +67,21 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "flex flex-col items-center gap-1 text-muted-foreground",
+                      "flex flex-col items-center justify-center gap-1 text-muted-foreground",
                       isActive && "text-primary"
                     )}
                   >
-                    <item.icon className="h-5 w-5" />
-                    <span className="text-xs">{t(item.labelKey as any)}</span>
+                    <item.icon className="h-6 w-6" />
+                    <span className="text-[10px] font-medium">{t(item.labelKey as any)}</span>
                   </Link>
                 );
               })}
-              <div className="col-start-5 flex flex-col items-center gap-1 text-muted-foreground">
-                <SidebarTrigger>
-                  <span className="sr-only">More</span>
-                </SidebarTrigger>
-                <span className="text-xs">{t('more')}</span>
-              </div>
+              <SidebarTrigger asChild>
+                <div className="flex flex-col items-center justify-center gap-1 text-muted-foreground">
+                    <AlignJustify className="h-6 w-6" />
+                    <span className="text-[10px] font-medium">{t('more')}</span>
+                </div>
+              </SidebarTrigger>
             </div>
           </div>
         )}
