@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import { Toaster } from "@/components/ui/toaster";
-import MainLayout from "@/components/layout/main-layout";
-import "./globals.css";
 import { AppProviders } from "@/providers/app-providers";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Prasiri Worship Manager",
@@ -25,12 +23,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <AppProviders>
-          <MainLayout>
-            {children}
-          </MainLayout>
-          <Toaster />
-        </AppProviders>
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

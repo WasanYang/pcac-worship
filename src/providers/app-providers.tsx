@@ -1,7 +1,9 @@
 "use client";
 
 import { ThemeProvider } from "@/providers/theme-provider";
-import { I18nProvider } from "@/providers/i-18n-provider";
+import { I18nProvider } from "@/providers/i18n-provider";
+import MainLayout from "@/components/layout/main-layout";
+import { Toaster } from "@/components/ui/toaster";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
@@ -12,7 +14,8 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
         enableSystem
         disableTransitionOnChange
       >
-        {children}
+        <MainLayout>{children}</MainLayout>
+        <Toaster />
       </ThemeProvider>
     </I18nProvider>
   );
