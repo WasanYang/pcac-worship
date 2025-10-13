@@ -1,11 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Header } from "@/components/layout/header";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
+  const isMobile = useIsMobile();
   // Get sidebar state from cookie
   const isSidebarOpen = React.useMemo(() => {
     if (typeof window !== 'undefined') {
@@ -26,11 +28,19 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
             <SidebarInset>
                 <Header />
-                <main className="flex-1 gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+                <main className="flex-1 gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 pb-24 md:pb-4">
                     {children}
                 </main>
             </SidebarInset>
         </div>
+        {isMobile && (
+          <div className="fixed bottom-0 left-0 z-40 w-full border-t bg-background md:hidden">
+              <div className="flex h-16 items-center justify-between px-4">
+                <SidebarTrigger />
+                {/* Add other footer items here if needed */}
+              </div>
+          </div>
+        )}
       </div>
     </SidebarProvider>
   );
