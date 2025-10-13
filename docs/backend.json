@@ -106,11 +106,11 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "TeamMember",
       "type": "object",
-      "description": "Represents a team member involved in worship services.",
+      "description": "Represents a team member involved in worship services. The document ID should be the Firebase Auth UID.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the TeamMember entity."
+          "description": "Unique identifier for the TeamMember entity. This should be the Firebase Auth 'uid'."
         },
         "name": {
           "type": "string",
@@ -134,7 +134,8 @@
         "id",
         "name",
         "email",
-        "role"
+        "role",
+        "userId"
       ]
     },
     "Schedule": {
@@ -296,7 +297,8 @@
   },
   "auth": {
     "providers": [
-      "google.com"
+      "google.com",
+      "password"
     ]
   },
   "firestore": {
@@ -340,11 +342,11 @@
           "schema": {
             "$ref": "#/backend/entities/TeamMember"
           },
-          "description": "Stores team member profiles. Includes 'userId' for authentication link to Firebase Auth.  Accessible by the team member themselves or admins. `teamMemberId` is the unique team member identifier.",
+          "description": "Stores team member profiles. The document ID is the Firebase Auth `uid`. Includes 'userId' for authentication link to Firebase Auth.  Accessible by the team member themselves or admins. `teamMemberId` is the unique team member identifier.",
           "params": [
             {
               "name": "teamMemberId",
-              "description": "Unique identifier for the team member."
+              "description": "The Firebase Auth user ID (`uid`)."
             }
           ]
         }
