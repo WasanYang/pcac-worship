@@ -2,14 +2,20 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/firebase';
 import { signInWithGoogle } from '@/firebase/auth/sign-in';
 import { useI18n } from '@/providers/i18n-provider';
 
 export default function LoginPage() {
     const { t } = useI18n();
+    const auth = useAuth();
 
   const handleSignIn = async () => {
-    await signInWithGoogle();
+    if (auth) {
+      await signInWithGoogle(auth);
+    } else {
+        console.error("Auth service is not available.");
+    }
   };
 
   return (

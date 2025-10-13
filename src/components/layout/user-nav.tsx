@@ -27,7 +27,9 @@ export function UserNav() {
   const auth = useAuth();
 
   const handleLogout = async () => {
-    await signOut(auth);
+    if (auth) {
+      await signOut(auth);
+    }
   };
 
   const getInitials = (name?: string | null) => {
