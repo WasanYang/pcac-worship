@@ -33,10 +33,12 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <MainLayout>
-              {children}
-            </MainLayout>
-            <Toaster />
+            <>
+              <MainLayout>
+                {children}
+              </MainLayout>
+              <Toaster />
+            </>
           </ThemeProvider>
         </I18nProvider>
       </body>
