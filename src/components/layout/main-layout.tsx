@@ -46,20 +46,18 @@ export default function MainLayout({
           </div>
         </div>
 
-        <div className='flex flex-1'>
-          <Sidebar side='left' collapsible='none' className='top-48 mt-[-3.5rem]'>
-            <SidebarNav />
-          </Sidebar>
-          <div className="flex-1 sm:pl-64 flex flex-col">
+        <div className='flex'>
+            <Sidebar side='left' collapsible='none' className='w-64 border-r'>
+                <SidebarNav />
+            </Sidebar>
             <main
-              className={cn(
-                'flex-1 gap-4 p-4 md:gap-6',
-                isClient && isMobile ? 'pb-24' : 'pb-4'
-              )}
+                className={cn(
+                    'flex-1 gap-4 p-4 md:gap-6',
+                    isClient && isMobile ? 'pb-24' : 'pb-4'
+                )}
             >
-              {children}
+                {children}
             </main>
-          </div>
         </div>
 
         {isClient && isMobile && (
