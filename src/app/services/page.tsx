@@ -34,9 +34,9 @@ export default function ServicesPage() {
             </CardHeader>
             <CardContent className="flex-grow">
               <div className="text-sm text-muted-foreground space-y-2">
-                <p>
+                <div>
                   <Badge variant="outline">{service.date}</Badge>
-                </p>
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">Leader:</span>
                    <div className="flex items-center gap-2">
