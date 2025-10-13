@@ -24,10 +24,12 @@ export type Service = {
   setlist: Song[];
 };
 
+export type Role = "Worship Leader" | "Vocalist" | "Keys" | "Guitar (Acoustic)" | "Guitar (Electric)" | "Bass" | "Drums" | "Sound" | "Media";
+
 export type TeamMember = {
   id: string;
   name: string;
-  role: string;
+  role: Role | string;
   avatarUrl: string;
   email: string;
   skills: { skill: string; progress: number }[];
