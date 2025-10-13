@@ -14,7 +14,7 @@ import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { navItems } from "@/components/layout/sidebar-nav";
-import { useI18n, I18nProvider } from "@/providers/i-18n-provider";
+import { useI18n } from "@/providers/i-18n-provider";
 import { Menu } from "lucide-react";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -41,9 +41,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     <SidebarProvider defaultOpen={isSidebarOpen}>
       <div className="flex min-h-screen w-full flex-col bg-muted/40">
         <Sidebar side="left" collapsible="icon" className="hidden sm:flex">
-          <I18nProvider>
-            <SidebarNav />
-          </I18nProvider>
+          <SidebarNav />
         </Sidebar>
         <div className="flex flex-col sm:data-[state=expanded]:pl-[16rem] sm:data-[state=collapsed]:pl-[3rem] transition-all duration-200">
           <SidebarInset>

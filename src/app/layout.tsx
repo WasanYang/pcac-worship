@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { ThemeProvider } from "@/providers/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import MainLayout from "@/components/layout/main-layout";
-import { I18nProvider } from "@/providers/i-18n-provider";
 import "./globals.css";
+import { AppProviders } from "@/providers/app-providers";
 
 export const metadata: Metadata = {
   title: "Prasiri Worship Manager",
@@ -26,19 +25,12 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <I18nProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <MainLayout>
-              {children}
-            </MainLayout>
-            <Toaster />
-          </ThemeProvider>
-        </I18nProvider>
+        <AppProviders>
+          <MainLayout>
+            {children}
+          </MainLayout>
+          <Toaster />
+        </AppProviders>
       </body>
     </html>
   );

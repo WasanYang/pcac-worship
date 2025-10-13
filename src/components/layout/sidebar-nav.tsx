@@ -17,7 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useI18n } from "@/providers/i18n-provider";
+import { useI18n } from "@/providers/i-18n-provider";
 
 export const navItems = [
   { href: "/", labelKey: "dashboard", icon: LayoutDashboard },
