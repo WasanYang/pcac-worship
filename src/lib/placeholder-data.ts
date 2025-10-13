@@ -24,7 +24,7 @@ export type Service = {
   setlist: Song[];
 };
 
-export type Role = "Admin" | "Worship Leader" | "Vocalist" | "Keys" | "Guitar (Acoustic)" | "Guitar (Electric)" | "Bass" | "Drums" | "Sound" | "Media";
+export type Role = "Admin" | "Worship Leader" | "Vocalist" | "Keys" | "Guitar (Acoustic)" | "Guitar (Electric)" | "Bass" | "Drums" | "Sound" | "Media" | "Team Member";
 
 export type TeamMember = {
   id: string;
