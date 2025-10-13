@@ -17,10 +17,23 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useI18n } from "@/providers/i18n-provider";
-import { Languages } from "lucide-react";
+import { Languages, LogOut } from "lucide-react";
+import { useAuth, useUser } from "@/firebase";
+import { signOut } from "firebase/auth";
 
 export function UserNav() {
   const { setLocale, t } = useI18n();
+  const { user } = useUser();
+  const auth = useAuth();
+
+  const handleLogout = async () => {
+    await signOut(auth);
+  };
+
+  const getInitials = (name?: string | null) => {
+    if (!name) return "U";
+    return name.split(' ').map(n => n[0]).join('');
+  }
 
   return (
     <div className="absolute top-4 right-4 z-40">
@@ -28,17 +41,17 @@ export function UserNav() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-9 w-9">
-              <AvatarImage src="https://picsum.photos/seed/10/40/40" alt="@shadcn" data-ai-hint="person portrait" />
-              <AvatarFallback>PW</AvatarFallback>
+              <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} data-ai-hint="person portrait" />
+              <AvatarFallback>{getInitials(user?.displayName)}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">Worship Leader</p>
+              <p className="text-sm font-medium leading-none">{user?.displayName}</p>
               <p className="text-xs leading-none text-muted-foreground">
-                admin@prasiri.com
+                {user?.email}
               </p>
             </div>
           </DropdownMenuLabel>
@@ -71,7 +84,8 @@ export function UserNav() {
               </DropdownMenuPortal>
             </DropdownMenuSub>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
             {t('logOut')}
           </DropdownMenuItem>
         </DropdownMenuContent>
