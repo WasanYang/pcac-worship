@@ -24,7 +24,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -33,38 +32,81 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { z } from 'zod';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { signUpWithEmail } from "@/firebase/auth/email";
+import { useAuth } from "@/firebase";
+import { FirebaseError } from "firebase/app";
 
-const roles: Role[] = ["Worship Leader", "Vocalist", "Keys", "Guitar (Acoustic)", "Guitar (Electric)", "Bass", "Drums"];
+const roles: Role[] = ["Worship Leader", "Vocalist", "Keys", "Guitar (Acoustic)", "Guitar (Electric)", "Bass", "Drums", "Sound", "Media"];
+
+const formSchema = z.object({
+  email: z.string().email({ message: "Invalid email address." }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  confirmPassword: z.string(),
+  role: z.string().min(1, { message: "Please select a role." }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
 
 export default function TeamPage() {
   const { t } = useI18n();
+  const auth = useAuth();
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<Role | "">("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendInvitation = () => {
-    if (!inviteEmail || !inviteRole) {
-        toast({
-            variant: "destructive",
-            title: "Missing Information",
-            description: "Please enter an email and select a role.",
-        });
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+      role: "",
+    },
+  });
+
+  const handleAddMember = async (values: z.infer<typeof formSchema>) => {
+    if (!auth) {
+        toast({ variant: "destructive", title: "Error", description: "Authentication service not available." });
         return;
     }
-    // Here you would typically handle the invitation logic,
-    // e.g., sending an email or creating an invitation document in Firestore.
-    console.log(`Inviting ${inviteEmail} as a ${inviteRole}`);
-
-    toast({
-      title: "Invitation Sent",
-      description: `An invitation has been sent to ${inviteEmail}.`,
-    });
-
-    // Reset form and close dialog
-    setInviteEmail("");
-    setInviteRole("");
-    setIsDialogOpen(false);
+    setIsLoading(true);
+    try {
+        await signUpWithEmail(auth, values.email, values.password, values.role as Role);
+        toast({
+            title: "User Created",
+            description: `A new account for ${values.email} has been created.`,
+        });
+        form.reset();
+        setIsDialogOpen(false);
+    } catch (error) {
+        console.error("Error creating user:", error);
+        let description = "An unexpected error occurred.";
+        if (error instanceof FirebaseError) {
+            switch (error.code) {
+                case 'auth/email-already-in-use':
+                    description = 'An account with this email already exists.';
+                    break;
+                case 'auth/weak-password':
+                    description = 'The password is too weak.';
+                    break;
+                default:
+                    description = error.message;
+            }
+        }
+        toast({
+            variant: "destructive",
+            title: "Creation Failed",
+            description,
+        });
+    } finally {
+        setIsLoading(false);
+    }
   };
 
 
@@ -83,44 +125,79 @@ export default function TeamPage() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Invite New Member</DialogTitle>
+              <DialogTitle>Add New Member</DialogTitle>
               <DialogDescription>
-                Enter the email address and assign a role for the new team member.
+                Create a new user account and assign them a role.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  className="col-span-3"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="role" className="text-right">
-                  Role
-                </Label>
-                <Select onValueChange={(value: Role) => setInviteRole(value)} value={inviteRole || undefined}>
-                    <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {roles.map((role) => (
-                            <SelectItem key={role} value={role}>{role}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="submit" onClick={handleSendInvitation}>Send Invitation</Button>
-            </DialogFooter>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleAddMember)} className="space-y-4 py-4">
+                    <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Email</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="name@example.com" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Password</FormLabel>
+                                <FormControl>
+                                    <Input type="password" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Confirm Password</FormLabel>
+                                <FormControl>
+                                    <Input type="password" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="role"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Role</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a role" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {roles.map((role) => (
+                                            <SelectItem key={role} value={role}>{role}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <DialogFooter>
+                        <Button type="submit" disabled={isLoading}>{isLoading ? 'Adding...' : 'Add Member'}</Button>
+                    </DialogFooter>
+                </form>
+            </Form>
           </DialogContent>
         </Dialog>
       </div>
