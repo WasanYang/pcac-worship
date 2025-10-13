@@ -1,5 +1,7 @@
+
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,11 +19,69 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { Calendar } from "@/components/ui/calendar"
+import { Calendar } from "@/components/ui/calendar";
 import { useI18n } from "@/providers/i18n-provider";
+import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import type { TeamMember } from "@/lib/placeholder-data";
+import { doc, updateDoc } from "firebase/firestore";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import type { DateRange } from "react-day-picker";
+
+const profileFormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+});
 
 export default function SettingsPage() {
   const { t } = useI18n();
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedDates, setSelectedDates] = useState<Date[] | undefined>([]);
+
+  const teamMemberRef = useMemoFirebase(
+    () => (user ? doc(firestore, "team_members", user.uid) : null),
+    [firestore, user]
+  );
+  const { data: teamMember, isLoading: isTeamMemberLoading } = useDoc<TeamMember>(teamMemberRef);
+
+  const profileForm = useForm<z.infer<typeof profileFormSchema>>({
+    resolver: zodResolver(profileFormSchema),
+    values: {
+      name: teamMember?.name || "",
+    },
+  });
+
+  const handleProfileUpdate = async (values: z.infer<typeof profileFormSchema>) => {
+    if (!teamMemberRef) return;
+    setIsLoading(true);
+    try {
+      await updateDoc(teamMemberRef, {
+        name: values.name,
+      });
+      toast({
+        title: "Profile Updated",
+        description: "Your name has been successfully updated.",
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: "Could not update your profile. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const userRoles = Array.isArray(teamMember?.role) ? teamMember.role : (teamMember?.role ? [teamMember.role] : []);
+
 
   return (
     <div className="flex flex-col gap-8">
@@ -32,34 +92,49 @@ export default function SettingsPage() {
         </p>
       </div>
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="profile">{t('profile')}</TabsTrigger>
           <TabsTrigger value="account">{t('account')}</TabsTrigger>
           <TabsTrigger value="appearance">{t('appearance')}</TabsTrigger>
           <TabsTrigger value="availability">{t('availability')}</TabsTrigger>
         </TabsList>
         <TabsContent value="profile">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('profile')}</CardTitle>
-              <CardDescription>
-                {t('profileDesc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">{t('name')}</Label>
-                <Input id="name" defaultValue="Worship Leader" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">{t('email')}</Label>
-                <Input id="email" type="email" defaultValue="admin@prasiri.com" />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button>{t('saveChanges')}</Button>
-            </CardFooter>
-          </Card>
+          <Form {...profileForm}>
+            <form onSubmit={profileForm.handleSubmit(handleProfileUpdate)}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t('profile')}</CardTitle>
+                  <CardDescription>
+                    {t('profileDesc')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={profileForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('name')}</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Your name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="email">{t('email')}</Label>
+                    <Input id="email" type="email" value={teamMember?.email || ""} disabled />
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button type="submit" disabled={isLoading || isTeamMemberLoading}>
+                    {isLoading ? "Saving..." : t('saveChanges')}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </form>
+          </Form>
         </TabsContent>
         <TabsContent value="account">
             <Card>
@@ -71,17 +146,20 @@ export default function SettingsPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="role">{t('role')}</Label>
-                        <Input id="role" defaultValue="Administrator" disabled />
+                        <Label>{t('role')}</Label>
+                         <div className="flex flex-wrap gap-2">
+                           {userRoles.length > 0 ? (
+                              userRoles.map(role => <Badge key={role} variant="secondary">{role}</Badge>)
+                           ) : (
+                              <p className="text-sm text-muted-foreground">No roles assigned.</p>
+                           )}
+                        </div>
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="language">{t('language')}</Label>
                         <p className="text-sm text-muted-foreground">{t('languageNotImpl')}</p>
                     </div>
                 </CardContent>
-                 <CardFooter>
-                    <Button>{t('saveChanges')}</Button>
-                </CardFooter>
             </Card>
         </TabsContent>
         <TabsContent value="appearance">
@@ -105,12 +183,27 @@ export default function SettingsPage() {
                         {t('blockoutDatesDesc')}
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="flex justify-center">
+                <CardContent className="flex flex-col items-center gap-4">
                     <Calendar
                         mode="multiple"
+                        selected={selectedDates}
+                        onSelect={setSelectedDates}
                         className="rounded-md border"
                     />
+                    {selectedDates && selectedDates.length > 0 && (
+                        <div className="w-full max-w-md rounded-lg border p-4">
+                            <h4 className="font-semibold mb-2">Your selected blockout dates:</h4>
+                            <ul className="list-disc pl-5 text-sm">
+                                {selectedDates.map(date => (
+                                    <li key={date.toString()}>{date.toLocaleDateString()}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                 </CardContent>
+                 <CardFooter>
+                    <Button>Save Blockout Dates</Button>
+                </CardFooter>
             </Card>
         </TabsContent>
       </Tabs>
