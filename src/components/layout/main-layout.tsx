@@ -7,7 +7,6 @@ import {
   SidebarProvider,
   Sidebar,
   SidebarInset,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Header } from "@/components/layout/header";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
@@ -15,8 +14,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { navItems } from "@/components/layout/sidebar-nav";
 import { useI18n } from "@/providers/i18n-provider";
-import { Menu } from "lucide-react";
-import { I18nProvider } from "@/providers/i18n-provider";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
@@ -44,8 +41,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <Sidebar side="left" collapsible="icon" className="hidden sm:flex">
           <SidebarNav />
         </Sidebar>
-        <div className="flex flex-col sm:data-[state=expanded]:pl-[16rem] sm:data-[state=collapsed]:pl-[3rem] transition-all duration-200">
-          <SidebarInset>
+        <SidebarInset>
             <Header />
             <main
               className={cn(
@@ -55,8 +51,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             >
               {children}
             </main>
-          </SidebarInset>
-        </div>
+        </SidebarInset>
         {isClient && isMobile && (
           <div className="fixed bottom-0 left-0 z-40 w-full border-t bg-background/95 backdrop-blur-sm">
             <div className="grid h-16 grid-cols-4 items-center justify-items-center gap-4 px-4">
