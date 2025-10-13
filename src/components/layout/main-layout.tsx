@@ -4,7 +4,6 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import { Header } from '@/components/layout/header';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -12,6 +11,7 @@ import { navItems } from '@/components/layout/sidebar-nav';
 import { useI18n } from '@/providers/i18n-provider';
 import Image from 'next/image';
 import { placeholderImages } from '@/lib/placeholder-images.json';
+import { UserNav } from './user-nav';
 
 export default function MainLayout({
   children,
@@ -26,6 +26,7 @@ export default function MainLayout({
   return (
     <SidebarProvider>
       <div className='relative min-h-screen w-full flex-col bg-muted/40'>
+        <UserNav />
         <div className='relative h-64 w-full'>
           {bannerImage && (
             <Image
@@ -50,7 +51,6 @@ export default function MainLayout({
             <SidebarNav />
           </Sidebar>
           <div className="flex-1 sm:pl-64 flex flex-col">
-            <Header />
             <main
               className={cn(
                 'flex-1 gap-4 p-4 md:gap-6',

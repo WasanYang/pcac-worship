@@ -15,6 +15,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  TooltipProvider
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/providers/i18n-provider";
@@ -32,6 +33,7 @@ export function SidebarNav() {
   const { t } = useI18n();
 
   return (
+    <TooltipProvider>
     <div className="flex h-full flex-col">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold">
@@ -64,7 +66,7 @@ export function SidebarNav() {
             })}
             </div>
         </nav>
-        <div className="mt-auto flex flex-col gap-2 p-2 lg:p-4">
+        <div className="mt-auto flex flex-col gap-2 p-2 lg:p-4 border-t">
             <Tooltip>
             <TooltipTrigger asChild>
                 <Link
@@ -82,5 +84,6 @@ export function SidebarNav() {
             </Tooltip>
         </div>
     </div>
+    </TooltipProvider>
   );
 }
