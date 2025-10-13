@@ -40,7 +40,7 @@ import { signUpWithEmail } from "@/firebase/auth/email";
 import { useAuth } from "@/firebase";
 import { FirebaseError } from "firebase/app";
 
-const roles: Role[] = ["Worship Leader", "Vocalist", "Keys", "Guitar (Acoustic)", "Guitar (Electric)", "Bass", "Drums", "Sound", "Media"];
+const roles: Role[] = ["Admin", "Worship Leader", "Vocalist", "Keys", "Guitar (Acoustic)", "Guitar (Electric)", "Bass", "Drums", "Sound", "Media"];
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),

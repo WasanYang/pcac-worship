@@ -13,17 +13,15 @@ import type { Role } from '@/lib/placeholder-data';
 export async function signUpWithEmail(auth: Auth, email: string, password: string, role: Role = 'Team Member') {
   const { firestore } = getSdks(auth.app);
   
-  // Note: This creates the user in a separate auth context. The main app's
-  // onAuthStateChanged will not fire for this user until they log in.
-  // To avoid complexity, we are not auto-logging in the newly created user for the admin.
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
 
   const displayName = email.split('@')[0];
   await updateProfile(user, { displayName });
 
-  const userDocRef = doc(firestore, 'team_members', user.uid);
-  await setDoc(userDocRef, {
+  // Create document in 'team_members' collection
+  const teamMemberDocRef = doc(firestore, 'team_members', user.uid);
+  await setDoc(teamMemberDocRef, {
     id: user.uid,
     userId: user.uid,
     name: displayName,
@@ -31,6 +29,17 @@ export async function signUpWithEmail(auth: Auth, email: string, password: strin
     role: role,
     avatarUrl: `https://picsum.photos/seed/${user.uid}/100/100`
   });
+
+  // If the role is Admin, also create a document in 'user_roles' collection
+  if (role === 'Admin') {
+    const userRoleDocRef = doc(firestore, 'user_roles', user.uid);
+    await setDoc(userRoleDocRef, {
+      id: user.uid,
+      userId: user.uid,
+      role: 'Admin',
+      permissions: [] // You can define specific permissions later
+    });
+  }
 
   return userCredential;
 }
