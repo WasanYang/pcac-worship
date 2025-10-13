@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import MainLayout from "@/components/layout/main-layout";
-import { I18nProvider } from "@/providers/i18n-provider";
+import { I18nProvider } from "@/providers/i-18n-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -33,12 +33,10 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <>
-              <MainLayout>
-                {children}
-              </MainLayout>
-              <Toaster />
-            </>
+            <MainLayout>
+              {children}
+            </MainLayout>
+            <Toaster />
           </ThemeProvider>
         </I18nProvider>
       </body>

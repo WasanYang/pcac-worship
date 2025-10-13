@@ -14,9 +14,8 @@ import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { navItems } from "@/components/layout/sidebar-nav";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useI18n } from "@/providers/i18n-provider";
-import { AlignJustify } from "lucide-react";
+import { useI18n } from "@/providers/i-18n-provider";
+import { Menu } from "lucide-react";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
@@ -44,7 +43,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <Sidebar side="left" collapsible="icon" className="hidden sm:flex">
           <SidebarNav />
         </Sidebar>
-        <div className="flex flex-col sm:pl-14">
+        <div className="flex flex-col sm:data-[state=expanded]:pl-[16rem] sm:data-[state=collapsed]:pl-[3rem] transition-all duration-200">
           <SidebarInset>
             <Header />
             <main
@@ -60,7 +59,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         {isClient && isMobile && (
           <div className="fixed bottom-0 left-0 z-40 w-full border-t bg-background/95 backdrop-blur-sm">
             <div className="grid h-16 grid-cols-5 items-center justify-items-center gap-4 px-4">
-              {navItems.slice(0, 4).map((item, index) => {
+              {navItems.slice(0, 4).map((item) => {
                 const isActive = pathname === item.href;
                 return (
                   <Link
@@ -71,15 +70,15 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                       isActive && "text-primary"
                     )}
                   >
-                    <item.icon className="h-6 w-6" />
-                    <span className="text-[10px] font-medium">{t(item.labelKey as any)}</span>
+                    <item.icon className="h-5 w-5" />
+                    <span className="text-[11px] font-medium">{t(item.labelKey as any)}</span>
                   </Link>
                 );
               })}
               <SidebarTrigger asChild>
                 <div className="flex flex-col items-center justify-center gap-1 text-muted-foreground">
-                    <AlignJustify className="h-6 w-6" />
-                    <span className="text-[10px] font-medium">{t('more')}</span>
+                    <Menu className="h-5 w-5" />
+                    <span className="text-[11px] font-medium">{t('more')}</span>
                 </div>
               </SidebarTrigger>
             </div>
