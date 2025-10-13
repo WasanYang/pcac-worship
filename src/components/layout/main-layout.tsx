@@ -26,7 +26,7 @@ export default function MainLayout({
   return (
     <SidebarProvider>
       <div className='relative min-h-screen w-full flex-col bg-muted/40'>
-        <div className='relative h-48 w-full'>
+        <div className='relative h-64 w-full'>
           {bannerImage && (
             <Image
               src={bannerImage.imageUrl}
