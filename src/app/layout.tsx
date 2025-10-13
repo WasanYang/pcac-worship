@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import MainLayout from "@/components/layout/main-layout";
+import { I18nProvider } from "@/providers/i18n-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,17 +26,19 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <MainLayout>
-            {children}
-          </MainLayout>
-          <Toaster />
-        </ThemeProvider>
+        <I18nProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <MainLayout>
+              {children}
+            </MainLayout>
+            <Toaster />
+          </ThemeProvider>
+        </I18nProvider>
       </body>
     </html>
   );

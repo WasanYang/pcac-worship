@@ -17,30 +17,33 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/providers/i18n-provider";
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/songs", label: "Songs", icon: ListMusic },
-  { href: "/services", label: "Services", icon: Calendar },
-  { href: "/team", label: "Team", icon: Users },
-  { href: "/accountability", label: "Accountability", icon: HeartHandshake },
+  { href: "/", labelKey: "dashboard", icon: LayoutDashboard },
+  { href: "/songs", labelKey: "songs", icon: ListMusic },
+  { href: "/services", labelKey: "services", icon: Calendar },
+  { href: "/team", labelKey: "team", icon: Users },
+  { href: "/accountability", labelKey: "accountability", icon: HeartHandshake },
 ];
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const { t } = useI18n();
 
   return (
     <div className="flex h-full flex-col">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold">
             <Music className="h-6 w-6 text-primary" />
-            <span className="">Prasiri</span>
+            <span className="">{t('prasiri')}</span>
             </Link>
         </div>
         <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 text-sm font-medium lg:px-4">
             <div className="flex flex-col gap-2 py-4">
             {navItems.map((item) => {
                 const isActive = pathname === item.href;
+                const label = t(item.labelKey as any);
                 return (
                 <Tooltip key={item.href}>
                     <TooltipTrigger asChild>
@@ -52,10 +55,10 @@ export function SidebarNav() {
                         )}
                     >
                         <item.icon className="h-4 w-4" />
-                        <span className="truncate">{item.label}</span>
+                        <span className="truncate">{label}</span>
                     </Link>
                     </TooltipTrigger>
-                    <TooltipContent side="right">{item.label}</TooltipContent>
+                    <TooltipContent side="right">{label}</TooltipContent>
                 </Tooltip>
                 );
             })}
@@ -72,10 +75,10 @@ export function SidebarNav() {
                 )}
                 >
                 <Cog className="h-4 w-4" />
-                <span className="truncate">Settings</span>
+                <span className="truncate">{t('settings')}</span>
                 </Link>
             </TooltipTrigger>
-            <TooltipContent side="right">Settings</TooltipContent>
+            <TooltipContent side="right">{t('settings')}</TooltipContent>
             </Tooltip>
         </div>
     </div>

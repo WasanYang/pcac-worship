@@ -1,3 +1,5 @@
+"use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,10 +10,18 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSubContent
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useI18n } from "@/providers/i18n-provider";
+import { Languages } from "lucide-react";
 
 export function UserNav() {
+  const { setLocale, t } = useI18n();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -47,6 +57,18 @@ export function UserNav() {
         <DropdownMenuItem>
           <ThemeToggle />
         </DropdownMenuItem>
+        <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <Languages className="mr-2 h-4 w-4" />
+              <span>{t('language')}</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={() => setLocale('en')}>English</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLocale('th')}>ไทย</DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
           Log out

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardContent,
@@ -17,60 +19,63 @@ import { Badge } from "@/components/ui/badge";
 import { HeartHandshake, ListMusic, Users, CalendarDays } from "lucide-react";
 import { recentSongs, upcomingServices, teamMembers, accountabilityGroups } from "@/lib/placeholder-data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useI18n } from "@/providers/i18n-provider";
 
 export default function Dashboard() {
+  const { t } = useI18n();
+
   return (
     <div className="flex flex-col gap-8">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Songs</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('totalSongs')}</CardTitle>
             <ListMusic className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{recentSongs.length}</div>
             <p className="text-xs text-muted-foreground">
-              in your library
+              {t('inYourLibrary')}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Upcoming Services
+              {t('upcomingServices')}
             </CardTitle>
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{upcomingServices.length}</div>
             <p className="text-xs text-muted-foreground">
-              this month
+              {t('thisMonth')}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Team Members</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('teamMembers')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{teamMembers.length}</div>
             <p className="text-xs text-muted-foreground">
-              active in the team
+              {t('activeInTheTeam')}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Active Groups
+              {t('activeGroups')}
             </CardTitle>
             <HeartHandshake className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{accountabilityGroups.length}</div>
             <p className="text-xs text-muted-foreground">
-              for peer accountability
+              {t('forPeerAccountability')}
             </p>
           </CardContent>
         </Card>
@@ -79,18 +84,18 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Upcoming Services</CardTitle>
+            <CardTitle>{t('upcomingServices')}</CardTitle>
             <CardDescription>
-              Here are the services you have scheduled for this month.
+              {t('upcomingServicesDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Service</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Worship Leader</TableHead>
+                  <TableHead>{t('service')}</TableHead>
+                  <TableHead>{t('date')}</TableHead>
+                  <TableHead>{t('worshipLeader')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -121,9 +126,9 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recently Added Songs</CardTitle>
+            <CardTitle>{t('recentlyAddedSongs')}</CardTitle>
             <CardDescription>
-              New songs that have been recently added to the library.
+              {t('recentlyAddedSongsDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
