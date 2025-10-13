@@ -62,7 +62,7 @@ export default function SettingsPage() {
     if (teamMember) {
       profileForm.reset({ name: teamMember.name });
       if (teamMember.blockoutDates) {
-        setSelectedDates(teamMember.blockoutDates.map(d => new Date(d)));
+        setSelectedDates(teamMember.blockoutDates.map(d => new Date(d + 'T00:00:00'))); // Adjust to local timezone
       }
     }
   }, [teamMember, profileForm]);
@@ -94,7 +94,12 @@ export default function SettingsPage() {
     if (!teamMemberRef) return;
     setIsSavingBlockout(true);
     try {
-        const dateStrings = selectedDates?.map(date => date.toISOString().split('T')[0]);
+        const dateStrings = selectedDates?.map(date => {
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        });
         await updateDoc(teamMemberRef, {
             blockoutDates: dateStrings
         });
