@@ -71,3 +71,12 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .card {
+    background: linear-gradient(to bottom, hsl(var(--card)), hsl(var(--background)));
+  }
+  .dark .card {
+    background: linear-gradient(to bottom, hsl(var(--card)), hsl(var(--background)));
+  }
+}
