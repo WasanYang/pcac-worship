@@ -1,0 +1,116 @@
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { recentSongs } from "@/lib/placeholder-data";
+import { PlusCircle, File, ListFilter } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+export default function SongsPage() {
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between gap-4">
+            <div>
+                <CardTitle>Song Library</CardTitle>
+                <CardDescription>
+                Manage your church's song library.
+                </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1">
+                  <ListFilter className="h-3.5 w-3.5" />
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                    Filter
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem checked>
+                  Contemporary
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem>Hymn</DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem>
+                  Gospel
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button size="sm" variant="outline" className="h-8 gap-1">
+              <File className="h-3.5 w-3.5" />
+              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                Export
+              </span>
+            </Button>
+            <Button size="sm" className="h-8 gap-1">
+              <PlusCircle className="h-3.5 w-3.5" />
+              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                Add Song
+              </span>
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Song</TableHead>
+              <TableHead>Themes</TableHead>
+              <TableHead>Key</TableHead>
+              <TableHead>BPM</TableHead>
+              <TableHead>Last Played</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {recentSongs.map((song) => (
+              <TableRow key={song.id}>
+                <TableCell>
+                  <div className="font-medium">{song.title}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {song.author}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {song.themes.map((theme) => (
+                      <Badge key={theme} variant="secondary">
+                        {theme}
+                      </Badge>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell>{song.key}</TableCell>
+                <TableCell>{song.bpm}</TableCell>
+                <TableCell>{song.lastPlayed}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
