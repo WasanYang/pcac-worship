@@ -79,10 +79,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 );
               })}
               <SidebarTrigger asChild>
-                <div className="flex flex-col items-center justify-center gap-1 text-muted-foreground">
+                <button className="flex flex-col items-center justify-center gap-1 text-muted-foreground">
                     <Menu className="h-5 w-5" />
                     <span className="text-[11px] font-medium">{t('more')}</span>
-                </div>
+                </button>
               </SidebarTrigger>
             </div>
           </div>
