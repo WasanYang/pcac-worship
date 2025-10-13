@@ -39,7 +39,7 @@ export function UserNav() {
   }
 
   return (
-    <div className="absolute top-4 right-4 z-40">
+    <div className="z-40">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -61,16 +61,10 @@ export function UserNav() {
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem asChild>
-                <Link href="/settings">{t('profile')}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              {t('billing')}
-            </DropdownMenuItem>
-             <DropdownMenuItem asChild>
-               <Link href="/settings">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>{t('settings')}</span>
-               </Link>
+                <Link href="/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>{t('settings')}</span>
+                </Link>
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />

@@ -33,40 +33,33 @@ export function SidebarNav() {
 
   return (
     <TooltipProvider>
-    <div className="flex h-full flex-col">
+    <div className="flex h-full max-h-screen flex-col gap-2">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold">
             <Music className="h-6 w-6" />
             <span className="">{t('prasiri')}</span>
             </Link>
         </div>
-        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 text-sm font-medium lg:px-4">
-            <div className="flex flex-col gap-2 py-4">
-            {navItems.map((item) => {
-                const isActive = pathname === item.href;
-                const label = t(item.labelKey as any);
-                return (
-                <Tooltip key={item.href}>
-                    <TooltipTrigger asChild>
-                    <Link
-                        href={item.href}
-                        className={cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                        isActive && "bg-muted text-primary"
-                        )}
-                    >
-                        <item.icon className="h-4 w-4" />
-                        <span className="truncate">{label}</span>
-                    </Link>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">{label}</TooltipContent>
-                </Tooltip>
-                );
-            })}
-            </div>
-        </nav>
-        <div className="mt-auto p-2 lg:p-4 border-t">
-            {/* Settings link is now in UserNav */}
+        <div className="flex-1">
+            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+                {navItems.map((item) => {
+                    const isActive = pathname === item.href;
+                    const label = t(item.labelKey as any);
+                    return (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className={cn(
+                            "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                            isActive && "bg-muted text-primary"
+                            )}
+                        >
+                            <item.icon className="h-4 w-4" />
+                            {label}
+                        </Link>
+                    );
+                })}
+            </nav>
         </div>
     </div>
     </TooltipProvider>
