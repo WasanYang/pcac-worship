@@ -122,8 +122,11 @@
           "format": "email"
         },
         "role": {
-          "type": "string",
-          "description": "The role of the team member (e.g., Worship Leader, Keys, Drum, Vocalist)."
+          "type": "array",
+          "description": "The roles of the team member (e.g., Worship Leader, Keys, Drum, Vocalist).",
+          "items": {
+            "type": "string"
+          }
         },
         "userId": {
           "type": "string",

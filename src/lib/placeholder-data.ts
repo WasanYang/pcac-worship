@@ -29,7 +29,7 @@ export type Role = "Admin" | "Worship Leader" | "Vocalist" | "Keys" | "Guitar (A
 export type TeamMember = {
   id: string;
   name: string;
-  role: Role | string;
+  role: Role[] | string;
   avatarUrl: string;
   email: string;
   skills: { skill: string; progress: number }[];

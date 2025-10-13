@@ -23,6 +23,7 @@ import { signOut } from "firebase/auth";
 import Link from "next/link";
 import { doc } from "firebase/firestore";
 import type { TeamMember } from "@/lib/placeholder-data";
+import { Badge } from "@/components/ui/badge";
 
 export function UserNav() {
   const { setLocale, t } = useI18n();
@@ -44,6 +45,8 @@ export function UserNav() {
     if (!name) return "U";
     return name.split(' ').map(n => n[0]).join('');
   }
+
+  const userRoles = Array.isArray(teamMember?.role) ? teamMember.role : (teamMember?.role ? [teamMember.role] : []);
 
   return (
     <div className="z-40">
@@ -68,8 +71,12 @@ export function UserNav() {
                 <p className="text-xs leading-none text-muted-foreground">
                   {user?.email}
                 </p>
-                 {teamMember?.role && (
-                    <p className="text-xs leading-none text-muted-foreground font-mono mt-1">{teamMember.role}</p>
+                {userRoles.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                        {userRoles.map(role => (
+                            <Badge key={role} variant="secondary" className="text-xs">{role}</Badge>
+                        ))}
+                    </div>
                 )}
               </div>
             </div>

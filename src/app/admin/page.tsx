@@ -13,13 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Role, TeamMember } from "@/lib/placeholder-data";
 import { useI18n } from "@/providers/i18n-provider";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { z } from 'zod';
 import { useForm } from "react-hook-form";
@@ -31,6 +24,8 @@ import { FirebaseError } from "firebase/app";
 import { collection } from "firebase/firestore";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 
 const roles: Role[] = ["Admin", "Worship Leader", "Vocalist", "Keys", "Guitar (Acoustic)", "Guitar (Electric)", "Bass", "Drums", "Sound", "Media"];
 
@@ -38,7 +33,9 @@ const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
   confirmPassword: z.string(),
-  role: z.string().min(1, { message: "Please select a role." }),
+  roles: z.array(z.string()).refine((value) => value.some((item) => item), {
+    message: "You have to select at least one role.",
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -61,7 +58,7 @@ export default function AdminPage() {
       email: "",
       password: "",
       confirmPassword: "",
-      role: "",
+      roles: [],
     },
   });
 
@@ -72,7 +69,7 @@ export default function AdminPage() {
     }
     setIsLoading(true);
     try {
-        await signUpWithEmail(auth, values.email, values.password, values.role as Role);
+        await signUpWithEmail(auth, values.email, values.password, values.roles as Role[]);
         toast({
             title: "User Created",
             description: `A new account for ${values.email} has been created.`,
@@ -111,12 +108,12 @@ export default function AdminPage() {
           <p className="text-muted-foreground">{t('teamMembersDesc')}</p>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <Card className="lg:col-span-1">
                 <CardHeader>
                   <CardTitle>Add New Member</CardTitle>
                   <CardDescription>
-                    Create a new user account and assign them a role.
+                    Create a new user account and assign them roles.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -163,22 +160,47 @@ export default function AdminPage() {
                             />
                             <FormField
                                 control={form.control}
-                                name="role"
-                                render={({ field }) => (
+                                name="roles"
+                                render={() => (
                                     <FormItem>
-                                        <FormLabel>Role</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select a role" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {roles.map((role) => (
-                                                    <SelectItem key={role} value={role}>{role}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                        <div className="mb-4">
+                                            <FormLabel className="text-base">Roles</FormLabel>
+                                        </div>
+                                        <div className="space-y-2">
+                                        {roles.map((item) => (
+                                            <FormField
+                                            key={item}
+                                            control={form.control}
+                                            name="roles"
+                                            render={({ field }) => {
+                                                return (
+                                                <FormItem
+                                                    key={item}
+                                                    className="flex flex-row items-start space-x-3 space-y-0"
+                                                >
+                                                    <FormControl>
+                                                    <Checkbox
+                                                        checked={field.value?.includes(item)}
+                                                        onCheckedChange={(checked) => {
+                                                        return checked
+                                                            ? field.onChange([...(field.value || []), item])
+                                                            : field.onChange(
+                                                                field.value?.filter(
+                                                                (value) => value !== item
+                                                                )
+                                                            )
+                                                        }}
+                                                    />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal">
+                                                    {item}
+                                                    </FormLabel>
+                                                </FormItem>
+                                                )
+                                            }}
+                                            />
+                                        ))}
+                                        </div>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -189,7 +211,7 @@ export default function AdminPage() {
                 </CardContent>
             </Card>
 
-            <Card>
+            <Card className="lg:col-span-2">
                 <CardHeader>
                   <CardTitle>All System Users</CardTitle>
                   <CardDescription>
@@ -202,7 +224,7 @@ export default function AdminPage() {
                             <TableRow>
                                 <TableHead>Name</TableHead>
                                 <TableHead>Email</TableHead>
-                                <TableHead>Role</TableHead>
+                                <TableHead>Roles</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -218,7 +240,13 @@ export default function AdminPage() {
                                         </div>
                                     </TableCell>
                                     <TableCell>{user.email}</TableCell>
-                                    <TableCell>{user.role}</TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-wrap gap-1">
+                                            {(Array.isArray(user.role) ? user.role : [user.role]).map(role => (
+                                                <Badge key={role} variant="secondary">{role}</Badge>
+                                            ))}
+                                        </div>
+                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -229,5 +257,3 @@ export default function AdminPage() {
     </div>
   );
 }
-
-    
