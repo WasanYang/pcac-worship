@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -30,35 +31,23 @@ export default function ServicesPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
         {upcomingServices.map((service) => (
-          <Card key={service.id} className="flex flex-col">
-            <CardHeader>
-              <CardTitle>{service.theme}</CardTitle>
-              <CardDescription>{service.sermonTheme}</CardDescription>
+          <Card key={service.id} className="flex flex-col bg-transparent shadow-none border-0">
+             <div className="overflow-hidden rounded-md">
+                <Image
+                src={service.imageUrl}
+                alt={service.theme}
+                width={300}
+                height={300}
+                className="aspect-square w-full object-cover transition-transform hover:scale-105"
+                data-ai-hint="worship service"
+                />
+            </div>
+            <CardHeader className="p-2 pt-4">
+              <CardTitle className="text-base truncate">{service.theme}</CardTitle>
+              <CardDescription className="text-xs">{service.date}</CardDescription>
             </CardHeader>
-            <CardContent className="flex-grow">
-              <div className="text-sm text-muted-foreground space-y-2">
-                <div>
-                  <Badge variant="outline">{service.date}</Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">{t('leader')}:</span>
-                   <div className="flex items-center gap-2">
-                        <Avatar className="h-6 w-6">
-                            <AvatarImage src={teamMembers.find(m => m.name === service.worshipLeader)?.avatarUrl} alt={service.worshipLeader} />
-                            <AvatarFallback>{service.worshipLeader.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <span>{service.worshipLeader}</span>
-                      </div>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button variant="secondary" className="w-full">
-                {t('viewPlan')}
-              </Button>
-            </CardFooter>
           </Card>
         ))}
       </div>

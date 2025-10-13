@@ -29,6 +29,30 @@
       "description": "Avatar for Morgan Blue",
       "imageUrl": "https://picsum.photos/seed/15/100/100",
       "imageHint": "person portrait"
+    },
+    {
+      "id": "service1",
+      "description": "Image for Sunday Morning Worship",
+      "imageUrl": "https://picsum.photos/seed/21/300/300",
+      "imageHint": "worship service"
+    },
+    {
+      "id": "service2",
+      "description": "Image for Youth Night",
+      "imageUrl": "https://picsum.photos/seed/22/300/300",
+      "imageHint": "youth group"
+    },
+    {
+      "id": "service3",
+      "description": "Image for Sunday Morning Worship",
+      "imageUrl": "https://picsum.photos/seed/23/300/300",
+      "imageHint": "church praise"
+    },
+    {
+      "id": "service4",
+      "description": "Image for Mid-week Prayer",
+      "imageUrl": "https://picsum.photos/seed/24/300/300",
+      "imageHint": "prayer meeting"
     }
   ]
 }

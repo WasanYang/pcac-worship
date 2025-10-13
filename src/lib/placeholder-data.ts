@@ -19,6 +19,7 @@ export type Service = {
   sermonTheme: string;
   date: string;
   worshipLeader: string;
+  imageUrl: string;
   team: { role: string; member: string | null }[];
   setlist: Song[];
 };
@@ -59,10 +60,10 @@ export const teamMembers: TeamMember[] = [
 ];
 
 export const upcomingServices: Service[] = [
-  { id: '1', theme: "Sunday Morning Worship", sermonTheme: "Love That Lasts", date: "May 26, 2024", worshipLeader: "Alex Ray", team: [], setlist: [] },
-  { id: '2', theme: "Youth Night", sermonTheme: "Fearless Generation", date: "May 31, 2024", worshipLeader: "Taylor Green", team: [], setlist: [] },
-  { id: '3', theme: "Sunday Morning Worship", sermonTheme: "Foundations of Faith", date: "June 2, 2024", worshipLeader: "Alex Ray", team: [], setlist: [] },
-  { id: '4', theme: "Mid-week Prayer", sermonTheme: "The Power of Prayer", date: "June 5, 2024", worshipLeader: "Jordan Lee", team: [], setlist: [] },
+  { id: '1', theme: "Sunday Morning Worship", sermonTheme: "Love That Lasts", date: "May 26, 2024", worshipLeader: "Alex Ray", imageUrl: placeholderImages.find(p => p.id === 'service1')?.imageUrl || '', team: [], setlist: [] },
+  { id: '2', theme: "Youth Night", sermonTheme: "Fearless Generation", date: "May 31, 2024", worshipLeader: "Taylor Green", imageUrl: placeholderImages.find(p => p.id === 'service2')?.imageUrl || '', team: [], setlist: [] },
+  { id: '3', theme: "Sunday Morning Worship", sermonTheme: "Foundations of Faith", date: "June 2, 2024", worshipLeader: "Alex Ray", imageUrl: placeholderImages.find(p => p.id === 'service3')?.imageUrl || '', team: [], setlist: [] },
+  { id: '4', theme: "Mid-week Prayer", sermonTheme: "The Power of Prayer", date: "June 5, 2024", worshipLeader: "Jordan Lee", imageUrl: placeholderImages.find(p => p.id === 'service4')?.imageUrl || '', team: [], setlist: [] },
 ];
 
 export const accountabilityGroups: AccountabilityGroup[] = [

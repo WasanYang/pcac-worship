@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -7,18 +8,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { HeartHandshake, ListMusic, Users, CalendarDays } from "lucide-react";
 import { recentSongs, upcomingServices, teamMembers, accountabilityGroups } from "@/lib/placeholder-data";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useI18n } from "@/providers/i18n-provider";
 
 export default function Dashboard() {
@@ -89,38 +81,25 @@ export default function Dashboard() {
               {t('upcomingServicesDesc')}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('service')}</TableHead>
-                  <TableHead>{t('date')}</TableHead>
-                  <TableHead>{t('worshipLeader')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {upcomingServices.slice(0, 5).map((service) => (
-                  <TableRow key={service.id}>
-                    <TableCell>
-                      <div className="font-medium">{service.theme}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {service.sermonTheme}
-                      </div>
-                    </TableCell>
-                    <TableCell>{service.date}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-6 w-6">
-                            <AvatarImage src={teamMembers.find(m => m.name === service.worshipLeader)?.avatarUrl} alt={service.worshipLeader} />
-                            <AvatarFallback>{service.worshipLeader.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <span>{service.worshipLeader}</span>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <CardContent className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            {upcomingServices.slice(0, 6).map((service) => (
+              <div key={service.id} className="space-y-2">
+                <div className="overflow-hidden rounded-md">
+                  <Image
+                    src={service.imageUrl}
+                    alt={service.theme}
+                    width={300}
+                    height={300}
+                    className="aspect-square w-full object-cover transition-transform hover:scale-105"
+                    data-ai-hint="worship service"
+                  />
+                </div>
+                <div>
+                  <h3 className="font-semibold truncate">{service.theme}</h3>
+                  <p className="text-xs text-muted-foreground">{service.date}</p>
+                </div>
+              </div>
+            ))}
           </CardContent>
         </Card>
 
