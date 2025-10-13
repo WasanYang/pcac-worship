@@ -16,6 +16,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Role } from "@/lib/placeholder-data";
@@ -29,17 +31,18 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { signUpWithEmail } from "@/firebase/auth/email";
 import { useAuth, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { FirebaseError } from "firebase/app";
-import { collection } from "firebase/firestore";
+import { collection, doc, updateDoc } from "firebase/firestore";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Pencil } from "lucide-react";
 import type { TeamMember } from "@/lib/placeholder-data";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 const roles: Role[] = ["Admin", "Worship Leader", "Vocalist", "Keys", "Guitar (Acoustic)", "Guitar (Electric)", "Bass", "Drums", "Sound", "Media"];
 
-const formSchema = z.object({
+const addMemberSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
   confirmPassword: z.string(),
@@ -51,6 +54,13 @@ const formSchema = z.object({
   path: ["confirmPassword"],
 });
 
+const editMemberSchema = z.object({
+    name: z.string().min(1, { message: "Name cannot be empty." }),
+    roles: z.array(z.string()).refine((value) => value.some((item) => item), {
+        message: "You have to select at least one role.",
+    }),
+});
+
 
 export default function AdminPage() {
   const { t } = useI18n();
@@ -58,13 +68,15 @@ export default function AdminPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<TeamMember | null>(null);
+
 
   const teamMembersQuery = useMemoFirebase(() => firestore ? collection(firestore, 'team_members') : null, [firestore]);
   const { data: allUsers } = useCollection<TeamMember>(teamMembersQuery);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const addForm = useForm<z.infer<typeof addMemberSchema>>({
+    resolver: zodResolver(addMemberSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -73,7 +85,15 @@ export default function AdminPage() {
     },
   });
 
-  const handleAddMember = async (values: z.infer<typeof formSchema>) => {
+  const editForm = useForm<z.infer<typeof editMemberSchema>>({
+    resolver: zodResolver(editMemberSchema),
+    defaultValues: {
+        name: "",
+        roles: [],
+    },
+  });
+
+  const handleAddMember = async (values: z.infer<typeof addMemberSchema>) => {
     if (!auth) {
         toast({ variant: "destructive", title: "Error", description: "Authentication service not available." });
         return;
@@ -85,8 +105,8 @@ export default function AdminPage() {
             title: "User Created",
             description: `A new account for ${values.email} has been created.`,
         });
-        form.reset();
-        setIsDialogOpen(false);
+        addForm.reset();
+        setIsAddDialogOpen(false);
     } catch (error) {
         console.error("Error creating user:", error);
         let description = "An unexpected error occurred.";
@@ -112,6 +132,53 @@ export default function AdminPage() {
     }
   };
 
+  const handleEditMember = (user: TeamMember) => {
+    setEditingUser(user);
+    editForm.reset({
+        name: user.name,
+        roles: Array.isArray(user.role) ? user.role : [user.role],
+    });
+  };
+
+  const handleUpdateMember = async (values: z.infer<typeof editMemberSchema>) => {
+    if (!editingUser || !firestore) return;
+    setIsLoading(true);
+    const userDocRef = doc(firestore, 'team_members', editingUser.id);
+    const userRolesDocRef = doc(firestore, 'user_roles', editingUser.id);
+
+    try {
+        await updateDoc(userDocRef, {
+            name: values.name,
+            role: values.roles,
+        });
+
+        // Also update user_roles if admin status changes
+        if (values.roles.includes('Admin')) {
+            setDocumentNonBlocking(userRolesDocRef, {
+                id: editingUser.id,
+                userId: editingUser.id,
+                role: 'Admin',
+                permissions: []
+            }, { merge: true });
+        }
+        
+        toast({
+            title: "User Updated",
+            description: `${values.name}'s profile has been updated.`,
+        });
+        setEditingUser(null);
+    } catch (error) {
+        console.error("Error updating user:", error);
+        toast({
+            variant: "destructive",
+            title: "Update Failed",
+            description: "An unexpected error occurred.",
+        });
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
 
   return (
     <div className="flex flex-col gap-8">
@@ -120,7 +187,7 @@ export default function AdminPage() {
             <h1 className="text-3xl font-bold tracking-tight">{t('admin')}</h1>
             <p className="text-muted-foreground">{t('teamMembersDesc')}</p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <PlusCircle className="mr-2 h-4 w-4" /> {t('addMember')}
@@ -133,10 +200,10 @@ export default function AdminPage() {
                   Create a new user account and assign them roles.
                 </DialogDescription>
               </DialogHeader>
-               <Form {...form}>
-                  <form onSubmit={form.handleSubmit(handleAddMember)} className="space-y-4">
+               <Form {...addForm}>
+                  <form onSubmit={addForm.handleSubmit(handleAddMember)} className="space-y-4">
                       <FormField
-                          control={form.control}
+                          control={addForm.control}
                           name="email"
                           render={({ field }) => (
                               <FormItem>
@@ -149,7 +216,7 @@ export default function AdminPage() {
                           )}
                       />
                       <FormField
-                          control={form.control}
+                          control={addForm.control}
                           name="password"
                           render={({ field }) => (
                               <FormItem>
@@ -162,7 +229,7 @@ export default function AdminPage() {
                           )}
                       />
                       <FormField
-                          control={form.control}
+                          control={addForm.control}
                           name="confirmPassword"
                           render={({ field }) => (
                               <FormItem>
@@ -175,7 +242,7 @@ export default function AdminPage() {
                           )}
                       />
                       <FormField
-                          control={form.control}
+                          control={addForm.control}
                           name="roles"
                           render={() => (
                               <FormItem>
@@ -186,7 +253,7 @@ export default function AdminPage() {
                                   {roles.map((item) => (
                                       <FormField
                                       key={item}
-                                      control={form.control}
+                                      control={addForm.control}
                                       name="roles"
                                       render={({ field }) => {
                                           return (
@@ -232,7 +299,7 @@ export default function AdminPage() {
             <CardHeader>
               <CardTitle>All System Users</CardTitle>
               <CardDescription>
-                List of all users in the system.
+                List of all users in the system. You can edit their roles here.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -242,6 +309,7 @@ export default function AdminPage() {
                             <TableHead>Name</TableHead>
                             <TableHead>Email</TableHead>
                             <TableHead>Roles</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -264,12 +332,106 @@ export default function AdminPage() {
                                         ))}
                                     </div>
                                 </TableCell>
+                                <TableCell className="text-right">
+                                    <Button variant="ghost" size="icon" onClick={() => handleEditMember(user)}>
+                                        <Pencil className="h-4 w-4" />
+                                        <span className="sr-only">Edit User</span>
+                                    </Button>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
             </CardContent>
         </Card>
+
+        {/* Edit User Dialog */}
+        <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Edit Member</DialogTitle>
+                    <DialogDescription>
+                        Modify the details for {editingUser?.name}.
+                    </DialogDescription>
+                </DialogHeader>
+                <Form {...editForm}>
+                    <form onSubmit={editForm.handleSubmit(handleUpdateMember)} className="space-y-4 py-4">
+                        <FormField
+                            control={editForm.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Name</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Full Name" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <Input value={editingUser?.email || ''} disabled />
+                         </FormItem>
+                         <FormField
+                            control={editForm.control}
+                            name="roles"
+                            render={() => (
+                                <FormItem>
+                                    <div className="mb-4">
+                                        <FormLabel className="text-base">Roles</FormLabel>
+                                    </div>
+                                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                                    {roles.map((item) => (
+                                        <FormField
+                                        key={item}
+                                        control={editForm.control}
+                                        name="roles"
+                                        render={({ field }) => {
+                                            return (
+                                            <FormItem
+                                                key={item}
+                                                className="flex flex-row items-start space-x-3 space-y-0"
+                                            >
+                                                <FormControl>
+                                                <Checkbox
+                                                    checked={field.value?.includes(item)}
+                                                    onCheckedChange={(checked) => {
+                                                    return checked
+                                                        ? field.onChange([...(field.value || []), item])
+                                                        : field.onChange(
+                                                            field.value?.filter(
+                                                            (value) => value !== item
+                                                            )
+                                                        )
+                                                    }}
+                                                />
+                                                </FormControl>
+                                                <FormLabel className="font-normal">
+                                                {item}
+                                                </FormLabel>
+                                            </FormItem>
+                                            )
+                                        }}
+                                        />
+                                    ))}
+                                    </div>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <DialogFooter>
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary">Cancel</Button>
+                            </DialogClose>
+                            <Button type="submit" disabled={isLoading}>{isLoading ? 'Saving...' : 'Save Changes'}</Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }
+
+    
