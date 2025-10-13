@@ -37,17 +37,16 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 <Header />
                 <main className={cn(
                   "flex-1 gap-4 p-4 sm:px-6 sm:py-0 md:gap-8",
-                  isClient && isMobile && "pb-20",
+                  isClient && isMobile ? "pb-20" : ""
                 )}>
                     {children}
                 </main>
             </SidebarInset>
         </div>
         {isClient && isMobile && (
-          <div className="fixed bottom-0 left-0 z-40 w-full border-t bg-background md:hidden">
-              <div className="flex h-16 items-center justify-between px-4">
+          <div className="fixed bottom-0 left-0 z-40 w-full border-t bg-background">
+              <div className="flex h-16 items-center justify-start px-4">
                 <SidebarTrigger />
-                {/* Add other footer items here if needed */}
               </div>
           </div>
         )}
