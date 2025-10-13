@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardContent,
@@ -25,16 +27,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useI18n } from "@/providers/i18n-provider";
 
 export default function SongsPage() {
+  const { t } = useI18n();
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between gap-4">
             <div>
-                <CardTitle>Song Library</CardTitle>
+                <CardTitle>{t('songLibrary')}</CardTitle>
                 <CardDescription>
-                Manage your church's song library.
+                {t('songLibraryDesc')}
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -43,32 +48,32 @@ export default function SongsPage() {
                 <Button variant="outline" size="sm" className="h-8 gap-1">
                   <ListFilter className="h-3.5 w-3.5" />
                   <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Filter
+                    {t('filter')}
                   </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('filterBy')}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuCheckboxItem checked>
-                  Contemporary
+                  {t('contemporary')}
                 </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem>Hymn</DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem>{t('hymn')}</DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem>
-                  Gospel
+                  {t('gospel')}
                 </DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <Button size="sm" variant="outline" className="h-8 gap-1">
               <File className="h-3.5 w-3.5" />
               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Export
+                {t('export')}
               </span>
             </Button>
             <Button size="sm" className="h-8 gap-1">
               <PlusCircle className="h-3.5 w-3.5" />
               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Add Song
+                {t('addSong')}
               </span>
             </Button>
           </div>
@@ -78,11 +83,11 @@ export default function SongsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Song</TableHead>
-              <TableHead>Themes</TableHead>
-              <TableHead>Key</TableHead>
-              <TableHead>BPM</TableHead>
-              <TableHead>Last Played</TableHead>
+              <TableHead>{t('song')}</TableHead>
+              <TableHead>{t('themes')}</TableHead>
+              <TableHead>{t('key')}</TableHead>
+              <TableHead>{t('bpm')}</TableHead>
+              <TableHead>{t('lastPlayed')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

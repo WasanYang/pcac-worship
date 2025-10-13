@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardContent,
@@ -10,17 +12,19 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { teamMembers } from "@/lib/placeholder-data";
 import { PlusCircle } from "lucide-react";
+import { useI18n } from "@/providers/i18n-provider";
 
 export default function TeamPage() {
+  const { t } = useI18n();
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
         <div>
-            <h1 className="text-3xl font-bold tracking-tight">Team Members</h1>
-            <p className="text-muted-foreground">Manage your worship team members and their roles.</p>
+            <h1 className="text-3xl font-bold tracking-tight">{t('teamMembers')}</h1>
+            <p className="text-muted-foreground">{t('teamMembersDesc')}</p>
         </div>
         <Button>
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Member
+          <PlusCircle className="mr-2 h-4 w-4" /> {t('addMember')}
         </Button>
       </div>
 
@@ -38,8 +42,8 @@ export default function TeamPage() {
               <CardDescription>{member.role}</CardDescription>
             </CardContent>
             <CardFooter className="flex justify-center gap-2">
-              <Button variant="outline" size="sm">Profile</Button>
-              <Button variant="secondary" size="sm">Skills</Button>
+              <Button variant="outline" size="sm">{t('profile')}</Button>
+              <Button variant="secondary" size="sm">{t('skills')}</Button>
             </CardFooter>
           </Card>
         ))}

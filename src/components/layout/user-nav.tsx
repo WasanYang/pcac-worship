@@ -44,13 +44,13 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem>
-            Profile
+            {t('profile')}
           </DropdownMenuItem>
           <DropdownMenuItem>
-            Billing
+            {t('billing')}
           </DropdownMenuItem>
           <DropdownMenuItem>
-            Settings
+            {t('settings')}
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
@@ -71,7 +71,7 @@ export function UserNav() {
           </DropdownMenuSub>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          Log out
+          {t('logOut')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -59,7 +59,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         </div>
         {isClient && isMobile && (
           <div className="fixed bottom-0 left-0 z-40 w-full border-t bg-background/95 backdrop-blur-sm">
-            <div className="grid h-16 grid-cols-5 items-center justify-items-center gap-4 px-4">
+            <div className="grid h-16 grid-cols-4 items-center justify-items-center gap-4 px-4">
               {navItems.slice(0, 4).map((item) => {
                 const isActive = pathname === item.href;
                 return (
@@ -76,10 +76,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                   </Link>
                 );
               })}
-              <SidebarTrigger className="flex flex-col items-center justify-center gap-1 text-muted-foreground">
-                <Menu className="h-5 w-5" />
-                <span className="text-[11px] font-medium">{t('more')}</span>
-              </SidebarTrigger>
             </div>
           </div>
         )}

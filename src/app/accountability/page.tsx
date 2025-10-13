@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardContent,
@@ -17,17 +19,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useI18n } from "@/providers/i18n-provider";
 
 export default function AccountabilityPage() {
+  const { t } = useI18n();
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
         <div>
-            <h1 className="text-3xl font-bold tracking-tight">Accountability Groups</h1>
-            <p className="text-muted-foreground">Facilitate peer groups for spiritual support and encouragement.</p>
+            <h1 className="text-3xl font-bold tracking-tight">{t('accountabilityGroups')}</h1>
+            <p className="text-muted-foreground">{t('accountabilityGroupsDesc')}</p>
         </div>
         <Button>
-          <PlusCircle className="mr-2 h-4 w-4" /> Create Group
+          <PlusCircle className="mr-2 h-4 w-4" /> {t('createGroup')}
         </Button>
       </div>
 
@@ -39,7 +43,7 @@ export default function AccountabilityPage() {
                     <CardHeader>
                     <CardTitle>{group.name}</CardTitle>
                     <CardDescription>
-                        Led by 
+                        {t('ledBy')} 
                         <span className="font-semibold text-foreground"> {group.leader}</span>
                     </CardDescription>
                     </CardHeader>
@@ -60,15 +64,15 @@ export default function AccountabilityPage() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm text-muted-foreground">Status:</span>
+                                  <span className="text-sm text-muted-foreground">{t('status')}:</span>
                                    <Select defaultValue={member.contactStatus}>
                                     <SelectTrigger className="w-[120px] h-8 text-xs">
-                                      <SelectValue placeholder="Status" />
+                                      <SelectValue placeholder={t('status')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="Contacted">Contacted</SelectItem>
-                                      <SelectItem value="Pending">Pending</SelectItem>
-                                      <SelectItem value="Missed">Missed</SelectItem>
+                                      <SelectItem value="Contacted">{t('contacted')}</SelectItem>
+                                      <SelectItem value="Pending">{t('pending')}</SelectItem>
+                                      <SelectItem value="Missed">{t('missed')}</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
