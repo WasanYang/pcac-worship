@@ -29,7 +29,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
             const firebaseUser = result.user;
             // This logic is now duplicated from the provider, which is not ideal, but necessary
             // to ensure the user document is created on the very first sign-in via redirect.
-            const userDocRef = doc(firestore, "team_members", firebaseUser.uid);
+            const userDocRef = doc(firestore, 'team_members', firebaseUser.uid);
             const userDocSnap = await getDoc(userDocRef);
             if (!userDocSnap.exists()) {
               await setDoc(userDocRef, {
@@ -38,12 +38,14 @@ function AppContent({ children }: { children: React.ReactNode }) {
                 name: firebaseUser.displayName || 'New User',
                 email: firebaseUser.email,
                 role: 'Team Member',
-                avatarUrl: firebaseUser.photoURL || `https://picsum.photos/seed/${firebaseUser.uid}/100/100`
+                avatarUrl:
+                  firebaseUser.photoURL ||
+                  `https://picsum.photos/seed/${firebaseUser.uid}/100/100`,
               });
             }
           }
         } catch (error) {
-          console.error("Error handling redirect result:", error);
+          console.error('Error handling redirect result:', error);
         }
       }
       setIsRedirectLoading(false);
@@ -54,8 +56,8 @@ function AppContent({ children }: { children: React.ReactNode }) {
 
   if (isUserLoading || isRedirectLoading || !isClient) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-16 w-16 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
+      <div className='flex h-screen items-center justify-center'>
+        <div className='h-16 w-16 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent'></div>
       </div>
     );
   }
