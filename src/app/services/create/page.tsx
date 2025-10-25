@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -40,11 +40,10 @@ import { Calendar } from '@/components/ui/calendar';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { addDoc, collection, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, CalendarIcon, ListMusic, Users, Image as ImageIcon, Search } from 'lucide-react';
+import { ArrowLeft, CalendarIcon, ListMusic, Users, Image as ImageIcon, Search, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { placeholderImages } from '@/lib/placeholder-images.json';
 import type { TeamMember, Song } from '@/lib/placeholder-data';
 import Image from 'next/image';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -59,14 +58,12 @@ const serviceSchema = z.object({
     required_error: 'A date is required.',
   }),
   worshipLeaderId: z.string().min(1, 'Worship leader is required'),
-  imageUrl: z.string().url('A banner image is required.').min(1, 'A banner image is required.'),
+  imageUrl: z.string().optional(),
   teamMemberIds: z.array(z.string()).optional(),
   songIds: z.array(z.string()).optional(),
 });
 
 type ServiceFormValues = z.infer<typeof serviceSchema>;
-
-const bannerPlaceholders = placeholderImages.filter(p => p.id.startsWith('service') || p.id.startsWith('homeBanner'));
 
 export default function CreateServicePage() {
   const router = useRouter();
@@ -74,6 +71,7 @@ export default function CreateServicePage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [songSearch, setSongSearch] = useState('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const teamMembersQuery = useMemoFirebase(() => firestore ? collection(firestore, 'team_members') : null, [firestore]);
   const { data: teamMembers } = useCollection<TeamMember>(teamMembersQuery);
@@ -90,7 +88,6 @@ export default function CreateServicePage() {
     );
   }, [songs, songSearch]);
 
-
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceSchema),
     defaultValues: {
@@ -103,9 +100,36 @@ export default function CreateServicePage() {
     },
   });
   
-  const selectedBannerUrl = form.watch('imageUrl');
   const selectedTeamMemberIds = form.watch('teamMemberIds') || [];
   const selectedSongIds = form.watch('songIds') || [];
+
+  const handleImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        toast({
+          variant: "destructive",
+          title: "File too large",
+          description: "Please upload an image smaller than 2MB."
+        });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        form.setValue('imageUrl', result);
+        setImagePreview(result);
+      };
+      reader.onerror = () => {
+         toast({
+          variant: "destructive",
+          title: "Error reading file",
+          description: "Could not read the selected image file."
+        });
+      }
+      reader.readAsDataURL(file);
+    }
+  };
 
   const onSubmit = async (data: ServiceFormValues) => {
     if (!firestore) {
@@ -177,25 +201,26 @@ export default function CreateServicePage() {
                   <FormItem>
                     <FormLabel className="text-base font-semibold">Service Banner</FormLabel>
                     <FormControl>
-                        <div>
-                             {selectedBannerUrl && (
-                                <div className="mb-4 rounded-lg overflow-hidden aspect-video relative w-full">
-                                    <Image src={selectedBannerUrl} alt="Selected Banner" fill className="object-cover"/>
+                      <div className='flex flex-col items-center justify-center w-full gap-4'>
+                          <div className="aspect-video relative w-full max-w-lg rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center overflow-hidden">
+                            {imagePreview ? (
+                                <Image src={imagePreview} alt="Selected Banner" fill className="object-cover"/>
+                            ) : (
+                               <div className='text-center text-muted-foreground p-4'>
+                                    <ImageIcon className="mx-auto h-12 w-12 mb-2" />
+                                    <p className='text-sm'>Upload a banner image</p>
+                                    <p className="text-xs">Recommended size: 16:9</p>
                                 </div>
                             )}
-                            <ScrollArea className="h-48 w-full">
-                                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 pr-4">
-                                {bannerPlaceholders.map(p => (
-                                    <div key={p.id} onClick={() => field.onChange(p.imageUrl)} className={cn(
-                                        "cursor-pointer rounded-md overflow-hidden aspect-square relative border-4 border-transparent",
-                                        field.value === p.imageUrl && "border-primary"
-                                    )}>
-                                        <Image src={p.imageUrl} alt={p.description} fill className="object-cover"/>
-                                    </div>
-                                ))}
-                                </div>
-                            </ScrollArea>
-                        </div>
+                          </div>
+                          <Button type="button" variant="outline" asChild>
+                            <label htmlFor="banner-upload" className='cursor-pointer'>
+                              <Upload className="mr-2 h-4 w-4" />
+                              Upload Image
+                              <Input id="banner-upload" type="file" className="sr-only" accept="image/png, image/jpeg, image/webp" onChange={handleImageUpload}/>
+                            </label>
+                          </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -454,9 +479,3 @@ export default function CreateServicePage() {
     </div>
   );
 }
-
-    
-
-    
-
-    
