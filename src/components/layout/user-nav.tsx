@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useI18n } from "@/providers/i18n-provider";
-import { Languages, LogOut, Settings, User as UserIcon, Shield, ChevronRight } from "lucide-react";
+import { Languages, LogOut, Settings, User as UserIcon, Shield, ChevronRight, ListMusic } from "lucide-react";
 import { useAuth, useUser, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { signOut } from "firebase/auth";
 import Link from "next/link";
@@ -103,6 +103,7 @@ export function UserNav() {
                     <ChevronRight className="h-4 w-4 text-muted-foreground"/>
                 </Link>
                  {isAdmin && (
+                   <>
                     <Link href="/admin" className="flex items-center justify-between p-2 rounded-md hover:bg-accent text-sm">
                         <div className="flex items-center gap-3">
                             <Shield className="h-4 w-4" />
@@ -110,6 +111,14 @@ export function UserNav() {
                         </div>
                         <ChevronRight className="h-4 w-4 text-muted-foreground"/>
                     </Link>
+                    <Link href="/admin/songs" className="flex items-center justify-between p-2 rounded-md hover:bg-accent text-sm">
+                        <div className="flex items-center gap-3">
+                            <ListMusic className="h-4 w-4" />
+                            <span>Songs</span>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground"/>
+                    </Link>
+                   </>
                 )}
              </div>
              
