@@ -133,7 +133,10 @@ export default function SongsPage() {
                   </div>
                 </TableCell>
                 <TableCell className="hidden sm:table-cell">{song.key}</TableCell>
-                <TableCell className="hidden md:table-cell">{song.lastPlayed}</TableCell>
+                <TableCell className="hidden md:table-cell">
+                    <div>{song.lastPlayed}</div>
+                    <div className="text-xs text-muted-foreground">{song.lastUsedBy}</div>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -9,6 +9,7 @@ export type Song = {
   bpm: number;
   ccli: string;
   lastPlayed: string;
+  lastUsedBy: string;
   themes: string[];
   style: string;
   dynamic: string;
@@ -56,13 +57,13 @@ export type Schedule = {
 
 
 export const recentSongs: Song[] = [
-  { id: '1', title: "Goodness of God", author: "Bethel Music", key: "G", bpm: 126, ccli: '7117726', lastPlayed: '2024-05-12', themes: ['Goodness', 'Faithfulness'], style: 'Ballad', dynamic: 'Medium' },
-  { id: '2', title: "What A Beautiful Name", author: "Hillsong Worship", key: "D", bpm: 136, ccli: '7068424', lastPlayed: '2024-05-05', themes: ['Jesus', 'Power', 'Majesty'], style: 'Anthem', dynamic: 'High' },
-  { id: '3', title: "Way Maker", author: "Sinach", key: "E♭", bpm: 132, ccli: '7115744', lastPlayed: '2024-04-28', themes: ['Promise', 'Miracle'], style: 'Gospel', dynamic: 'Medium' },
-  { id: '4', title: "Raise a Hallelujah", author: "Bethel Music", key: "C", bpm: 82, ccli: '7119315', lastPlayed: '2024-04-21', themes: ['Victory', 'Praise'], style: 'Rock', dynamic: 'High' },
-  { id: '5', title: "Living Hope", author: "Phil Wickham", key: "A", bpm: 144, ccli: '7106807', lastPlayed: '2024-05-19', themes: ['Salvation', 'Hope'], style: 'Contemporary', dynamic: 'Medium' },
-  { id: '6', title: "King of Kings", author: "Hillsong Worship", key: "D", bpm: 138, ccli: '7127647', lastPlayed: '2024-03-31', themes: ['Gospel Story', 'Majesty'], style: 'Anthem', dynamic: 'High' },
-  { id: '7', title: "The Blessing", author: "Kari Jobe, Cody Carnes", key: "B", bpm: 140, ccli: '7147007', lastPlayed: '2024-04-14', themes: ['Blessing', 'Generation'], style: 'Ballad', dynamic: 'Building' },
+  { id: '1', title: "Goodness of God", author: "Bethel Music", key: "G", bpm: 126, ccli: '7117726', lastPlayed: '2024-05-12', lastUsedBy: 'Alex Ray', themes: ['Goodness', 'Faithfulness'], style: 'Ballad', dynamic: 'Medium' },
+  { id: '2', title: "What A Beautiful Name", author: "Hillsong Worship", key: "D", bpm: 136, ccli: '7068424', lastPlayed: '2024-05-05', lastUsedBy: 'Taylor Green', themes: ['Jesus', 'Power', 'Majesty'], style: 'Anthem', dynamic: 'High' },
+  { id: '3', title: "Way Maker", author: "Sinach", key: "E♭", bpm: 132, ccli: '7115744', lastPlayed: '2024-04-28', lastUsedBy: 'Alex Ray', themes: ['Promise', 'Miracle'], style: 'Gospel', dynamic: 'Medium' },
+  { id: '4', title: "Raise a Hallelujah", author: "Bethel Music", key: "C", bpm: 82, ccli: '7119315', lastPlayed: '2024-04-21', lastUsedBy: 'Jordan Lee', themes: ['Victory', 'Praise'], style: 'Rock', dynamic: 'High' },
+  { id: '5', title: "Living Hope", author: "Phil Wickham", key: "A", bpm: 144, ccli: '7106807', lastPlayed: '2024-05-19', lastUsedBy: 'Taylor Green', themes: ['Salvation', 'Hope'], style: 'Contemporary', dynamic: 'Medium' },
+  { id: '6', title: "King of Kings", author: "Hillsong Worship", key: "D", bpm: 138, ccli: '7127647', lastPlayed: '2024-03-31', lastUsedBy: 'Alex Ray', themes: ['Gospel Story', 'Majesty'], style: 'Anthem', dynamic: 'High' },
+  { id: '7', title: "The Blessing", author: "Kari Jobe, Cody Carnes", key: "B", bpm: 140, ccli: '7147007', lastPlayed: '2024-04-14', lastUsedBy: 'Jordan Lee', themes: ['Blessing', 'Generation'], style: 'Ballad', dynamic: 'Building' },
 ];
 
 export const teamMembers: TeamMember[] = [
