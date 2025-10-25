@@ -24,7 +24,6 @@ export const navItems = [
   { href: "/services", labelKey: "services", icon: Calendar, adminOnly: false },
   { href: "/team", labelKey: "team", icon: Users, adminOnly: false },
   { href: "/accountability", labelKey: "accountability", icon: HeartHandshake, adminOnly: false },
-  { href: "/admin", labelKey: "admin", icon: Shield, adminOnly: true },
 ];
 
 export function SidebarNav() {
