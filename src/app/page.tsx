@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -127,8 +128,8 @@ export default function Dashboard() {
             </h2>
             {isLoading ? (
               <div className='space-y-4'>
-                <div className='grid grid-cols-2 md:grid-cols-1 gap-4'>
-                  {[...Array(2)].map((_, i) => (
+                <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4'>
+                  {[...Array(5)].map((_, i) => (
                     <Card key={i} className='flex flex-col'>
                       <div className='relative w-full h-24 md:h-40 bg-muted animate-pulse'></div>
                       <div className='p-3 md:p-4 flex flex-col justify-between flex-grow space-y-2'>
@@ -140,8 +141,8 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : upcomingServices && upcomingServices.length > 0 ? (
-              <div className='grid grid-cols-2 md:grid-cols-1 gap-4'>
-                {upcomingServices.map((service) => (
+              <div className='grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4'>
+                {upcomingServices.slice(0, 5).map((service) => (
                   <Card
                     key={service.id}
                     className='overflow-hidden flex flex-col'
