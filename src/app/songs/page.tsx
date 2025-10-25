@@ -116,8 +116,8 @@ export default function SongsPage() {
               <TableRow key={song.id}>
                 <TableCell>
                   <div className="font-medium">{song.title}</div>
-                  <div className="text-sm text-muted-foreground md:hidden">
-                    {song.author} &middot; {song.key}
+                  <div className="text-xs text-muted-foreground md:hidden">
+                    {song.author} &middot; {song.key} &middot; {song.lastPlayed}
                   </div>
                    <div className="text-sm text-muted-foreground hidden md:inline">
                     {song.author}
