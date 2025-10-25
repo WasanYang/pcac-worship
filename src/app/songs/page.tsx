@@ -2,6 +2,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -41,6 +42,7 @@ import { useI18n } from "@/providers/i18n-provider";
 
 export default function SongsPage() {
   const { t } = useI18n();
+  const router = useRouter();
   const [currentPage, setCurrentPage] = React.useState(1);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
@@ -113,7 +115,7 @@ export default function SongsPage() {
           </TableHeader>
           <TableBody>
             {paginatedSongs.map((song) => (
-              <TableRow key={song.id}>
+              <TableRow key={song.id} onClick={() => router.push(`/songs/${song.id}`)} className="cursor-pointer">
                 <TableCell>
                   <div className="font-medium">{song.title}</div>
                   <div className="text-xs text-muted-foreground md:hidden">
@@ -178,7 +180,7 @@ export default function SongsPage() {
               variant="outline"
               size="icon"
               className="h-8 w-8"
-              onClick={handlePreviousPage}
+              onClick={(e) => { e.stopPropagation(); handlePreviousPage(); }}
               disabled={currentPage === 1}
             >
               <span className="sr-only">Go to previous page</span>
@@ -188,7 +190,7 @@ export default function SongsPage() {
               variant="outline"
               size="icon"
               className="h-8 w-8"
-              onClick={handleNextPage}
+              onClick={(e) => { e.stopPropagation(); handleNextPage(); }}
               disabled={currentPage === totalPages}
             >
               <span className="sr-only">Go to next page</span>
