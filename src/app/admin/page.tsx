@@ -34,7 +34,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { signUpWithEmail } from '@/firebase/auth/email';
+import { signUpWithEmail } from '@/firebase/auth';
 import {
   useAuth,
   useCollection,

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/firebase';
-import { signInWithEmail } from '@/firebase/auth/email';
+import { signInWithEmail, signInWithGoogle } from '@/firebase/auth';
 import { useI18n } from '@/providers/i18n-provider';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
@@ -14,6 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { FirebaseError } from 'firebase/app';
 import { Eye, EyeOff } from 'lucide-react';
+import { FaGoogle } from 'react-icons/fa';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -25,6 +26,7 @@ export default function LoginPage() {
   const auth = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -72,6 +74,31 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleAuth = async () => {
+    if (!auth) {
+      console.error('Auth service is not available.');
+      return;
+    }
+    setIsGoogleLoading(true);
+    try {
+      await signInWithGoogle(auth);
+      // After redirect, AppProvider will handle user creation
+    } catch (error) {
+       console.error('Google Auth Error:', error);
+       let description = 'An unexpected error occurred.';
+        if (error instanceof FirebaseError) {
+            description = error.message;
+        }
+        toast({
+            variant: 'destructive',
+            title: 'Google Sign-In Failed',
+            description,
+        });
+        setIsGoogleLoading(false);
+    }
+  };
+
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
@@ -117,11 +144,34 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
                 {isLoading ? 'Loading...' : 'Sign In'}
               </Button>
             </form>
           </Form>
+
+           <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+           <Button variant="outline" className="w-full" onClick={handleGoogleAuth} disabled={isLoading || isGoogleLoading}>
+            {isGoogleLoading ? (
+              'Redirecting...'
+            ) : (
+              <>
+                <FaGoogle className="mr-2 h-4 w-4" />
+                Sign in with Google
+              </>
+            )}
+          </Button>
+
         </CardContent>
       </Card>
     </div>

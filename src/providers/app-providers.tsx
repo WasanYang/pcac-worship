@@ -46,9 +46,12 @@ function AppContent({ children }: { children: React.ReactNode }) {
           }
         } catch (error) {
           console.error('Error handling redirect result:', error);
+        } finally {
+            setIsRedirectLoading(false);
         }
+      } else {
+        setIsRedirectLoading(false);
       }
-      setIsRedirectLoading(false);
     };
 
     checkRedirect();

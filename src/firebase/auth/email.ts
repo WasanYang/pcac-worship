@@ -4,7 +4,9 @@ import {
   Auth, 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
-  updateProfile
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithRedirect
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { getSdks } from '@/firebase';
@@ -46,4 +48,9 @@ export async function signUpWithEmail(auth: Auth, email: string, password: strin
 
 export async function signInWithEmail(auth: Auth, email: string, password: string) {
   return await signInWithEmailAndPassword(auth, email, password);
+}
+
+export async function signInWithGoogle(auth: Auth) {
+  const provider = new GoogleAuthProvider();
+  return await signInWithRedirect(auth, provider);
 }
