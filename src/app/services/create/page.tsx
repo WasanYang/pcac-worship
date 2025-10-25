@@ -40,12 +40,16 @@ import { Calendar } from '@/components/ui/calendar';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { addDoc, collection, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, CalendarIcon, Users, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { placeholderImages } from '@/lib/placeholder-images.json';
 import type { TeamMember } from '@/lib/placeholder-data';
+import Image from 'next/image';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const serviceSchema = z.object({
   theme: z.string().min(1, 'Theme is required'),
@@ -54,10 +58,13 @@ const serviceSchema = z.object({
     required_error: 'A date is required.',
   }),
   worshipLeaderId: z.string().min(1, 'Worship leader is required'),
-  imageUrl: z.string().url().optional().or(z.literal('')),
+  imageUrl: z.string().url('A banner image is required.').min(1, 'A banner image is required.'),
+  teamMemberIds: z.array(z.string()).optional(),
 });
 
 type ServiceFormValues = z.infer<typeof serviceSchema>;
+
+const bannerPlaceholders = placeholderImages.filter(p => p.id.startsWith('service') || p.id.startsWith('homeBanner'));
 
 export default function CreateServicePage() {
   const router = useRouter();
@@ -75,8 +82,12 @@ export default function CreateServicePage() {
       sermonTheme: '',
       worshipLeaderId: '',
       imageUrl: '',
+      teamMemberIds: [],
     },
   });
+  
+  const selectedBannerUrl = form.watch('imageUrl');
+  const selectedTeamMemberIds = form.watch('teamMemberIds') || [];
 
   const onSubmit = async (data: ServiceFormValues) => {
     if (!firestore) {
@@ -89,17 +100,20 @@ export default function CreateServicePage() {
       const selectedLeader = teamMembers?.find(m => m.id === data.worshipLeaderId);
       
       const serviceData = {
-        ...data,
+        theme: data.theme,
+        sermonTheme: data.sermonTheme,
         date: data.date.toISOString(),
-        imageUrl: data.imageUrl || placeholderImages.find(p => p.id.startsWith('service'))?.imageUrl || 'https://picsum.photos/seed/service/600/400',
-        team: [],
-        setlist: [],
+        worshipLeaderId: data.worshipLeaderId,
         worshipLeaderName: selectedLeader?.name || 'Unknown',
+        imageUrl: data.imageUrl,
+        setlist: [],
+        team: data.teamMemberIds?.map(id => ({
+          memberId: id,
+          role: teamMembers?.find(m => m.id === id)?.role || 'Team Member'
+        })) || [],
       };
       
       const docRef = await addDoc(collection(firestore, 'services'), serviceData);
-      
-      // Add the auto-generated ID to the document
       await updateDoc(docRef, { id: docRef.id });
 
       toast({
@@ -127,17 +141,50 @@ export default function CreateServicePage() {
             Back to Services
         </Link>
        </Button>
-    <Card>
-      <CardHeader>
-        <CardTitle>Create a New Service</CardTitle>
-        <CardDescription>
-          Fill out the form below to add a new service plan.
-        </CardDescription>
-      </CardHeader>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent className='space-y-4'>
-            <FormField
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Create a New Service</CardTitle>
+            <CardDescription>
+              Fill out the form below to add a new service plan.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className='space-y-6'>
+            {/* Banner Selection */}
+             <FormField
+                control={form.control}
+                name="imageUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-semibold">Service Banner</FormLabel>
+                    <FormControl>
+                        <div>
+                             {selectedBannerUrl && (
+                                <div className="mb-4 rounded-lg overflow-hidden aspect-video relative w-full">
+                                    <Image src={selectedBannerUrl} alt="Selected Banner" fill className="object-cover"/>
+                                </div>
+                            )}
+                            <ScrollArea className="h-48 w-full">
+                                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 pr-4">
+                                {bannerPlaceholders.map(p => (
+                                    <div key={p.id} onClick={() => field.onChange(p.imageUrl)} className={cn(
+                                        "cursor-pointer rounded-md overflow-hidden aspect-square relative border-4 border-transparent",
+                                        field.value === p.imageUrl && "border-primary"
+                                    )}>
+                                        <Image src={p.imageUrl} alt={p.description} fill className="object-cover"/>
+                                    </div>
+                                ))}
+                                </div>
+                            </ScrollArea>
+                        </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+             <FormField
                 control={form.control}
                 name="theme"
                 render={({ field }) => (
@@ -215,7 +262,7 @@ export default function CreateServicePage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {teamMembers?.map(member => (
+                        {teamMembers?.filter(m => Array.isArray(m.role) ? m.role.includes("Worship Leader") : m.role === "Worship Leader").map(member => (
                           <SelectItem key={member.id} value={member.id}>
                             {member.name}
                           </SelectItem>
@@ -227,28 +274,86 @@ export default function CreateServicePage() {
                 )}
               />
             </div>
-             <FormField
+             {/* Team Selection */}
+            <FormField
                 control={form.control}
-                name="imageUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Banner Image URL (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://example.com/image.jpg" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                name="teamMemberIds"
+                render={() => (
+                    <FormItem>
+                        <div className="mb-2">
+                           <FormLabel className="text-base font-semibold">Schedule Team</FormLabel>
+                            <p className="text-sm text-muted-foreground">Select members who will be serving in this service.</p>
+                        </div>
+                        {selectedTeamMemberIds.length > 0 && (
+                            <div className="flex flex-wrap gap-2 p-3 bg-muted rounded-lg mb-4">
+                                {selectedTeamMemberIds.map(id => {
+                                    const member = teamMembers?.find(m => m.id === id);
+                                    if (!member) return null;
+                                    return (
+                                        <div key={id} className="flex items-center gap-2">
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarImage src={member.avatarUrl} alt={member.name} />
+                                                <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                            </Avatar>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )}
+                        <ScrollArea className="h-60 w-full rounded-md border">
+                            <div className="p-4 space-y-4">
+                            {teamMembers?.map((member) => (
+                                <FormField
+                                key={member.id}
+                                control={form.control}
+                                name="teamMemberIds"
+                                render={({ field }) => {
+                                    return (
+                                    <FormItem
+                                        key={member.id}
+                                        className="flex flex-row items-center space-x-3 space-y-0"
+                                    >
+                                        <FormControl>
+                                        <Checkbox
+                                            checked={field.value?.includes(member.id)}
+                                            onCheckedChange={(checked) => {
+                                            return checked
+                                                ? field.onChange([...(field.value || []), member.id])
+                                                : field.onChange(field.value?.filter((value) => value !== member.id));
+                                            }}
+                                        />
+                                        </FormControl>
+                                        <div className="flex items-center gap-3">
+                                            <Avatar className="h-9 w-9">
+                                                <AvatarImage src={member.avatarUrl} alt={member.name}/>
+                                                <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                            </Avatar>
+                                            <FormLabel className="font-normal">
+                                                {member.name}
+                                            </FormLabel>
+                                        </div>
+                                    </FormItem>
+                                    );
+                                }}
+                                />
+                            ))}
+                            </div>
+                        </ScrollArea>
+                        <FormMessage />
+                    </FormItem>
                 )}
-              />
+            />
           </CardContent>
           <CardFooter>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? 'Creating...' : 'Create Service'}
             </Button>
           </CardFooter>
-        </form>
-      </Form>
-    </Card>
+        </Card>
+      </form>
+    </Form>
     </div>
   );
 }
+
+    
