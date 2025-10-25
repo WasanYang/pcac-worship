@@ -94,7 +94,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 email: firebaseUser.email,
                 role: ['Team Member'], // Default role as an array
                 avatarUrl: firebaseUser.photoURL || `https://picsum.photos/seed/${firebaseUser.uid}/100/100`,
-                skills: [],
+                skills: [
+                  { skill: 'Vocal', progress: 30 },
+                  { skill: 'Stage Presence', progress: 15 },
+                ],
                 mentoringNotes: [],
               });
             } catch (error) {
