@@ -40,16 +40,17 @@ import { Calendar } from '@/components/ui/calendar';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { addDoc, collection, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, CalendarIcon, Users, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, CalendarIcon, ListMusic, Users, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { placeholderImages } from '@/lib/placeholder-images.json';
-import type { TeamMember } from '@/lib/placeholder-data';
+import type { TeamMember, Song } from '@/lib/placeholder-data';
 import Image from 'next/image';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 
 const serviceSchema = z.object({
   theme: z.string().min(1, 'Theme is required'),
@@ -60,6 +61,7 @@ const serviceSchema = z.object({
   worshipLeaderId: z.string().min(1, 'Worship leader is required'),
   imageUrl: z.string().url('A banner image is required.').min(1, 'A banner image is required.'),
   teamMemberIds: z.array(z.string()).optional(),
+  songIds: z.array(z.string()).optional(),
 });
 
 type ServiceFormValues = z.infer<typeof serviceSchema>;
@@ -74,6 +76,10 @@ export default function CreateServicePage() {
 
   const teamMembersQuery = useMemoFirebase(() => firestore ? collection(firestore, 'team_members') : null, [firestore]);
   const { data: teamMembers } = useCollection<TeamMember>(teamMembersQuery);
+  
+  const songsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'songs') : null, [firestore]);
+  const { data: songs } = useCollection<Song>(songsQuery);
+
 
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceSchema),
@@ -83,11 +89,13 @@ export default function CreateServicePage() {
       worshipLeaderId: '',
       imageUrl: '',
       teamMemberIds: [],
+      songIds: [],
     },
   });
   
   const selectedBannerUrl = form.watch('imageUrl');
   const selectedTeamMemberIds = form.watch('teamMemberIds') || [];
+  const selectedSongIds = form.watch('songIds') || [];
 
   const onSubmit = async (data: ServiceFormValues) => {
     if (!firestore) {
@@ -106,7 +114,7 @@ export default function CreateServicePage() {
         worshipLeaderId: data.worshipLeaderId,
         worshipLeaderName: selectedLeader?.name || 'Unknown',
         imageUrl: data.imageUrl,
-        setlist: [],
+        songIds: data.songIds || [],
         team: data.teamMemberIds?.map(id => ({
           memberId: id,
           role: teamMembers?.find(m => m.id === id)?.role || 'Team Member'
@@ -281,7 +289,7 @@ export default function CreateServicePage() {
                 render={() => (
                     <FormItem>
                         <div className="mb-2">
-                           <FormLabel className="text-base font-semibold">Schedule Team</FormLabel>
+                           <FormLabel className="text-base font-semibold flex items-center gap-2"><Users /> Schedule Team</FormLabel>
                             <p className="text-sm text-muted-foreground">Select members who will be serving in this service.</p>
                         </div>
                         {selectedTeamMemberIds.length > 0 && (
@@ -290,12 +298,13 @@ export default function CreateServicePage() {
                                     const member = teamMembers?.find(m => m.id === id);
                                     if (!member) return null;
                                     return (
-                                        <div key={id} className="flex items-center gap-2">
-                                            <Avatar className="h-8 w-8">
+                                        <Badge variant="secondary" key={id} className="flex items-center gap-2 text-base p-2">
+                                            <Avatar className="h-6 w-6">
                                                 <AvatarImage src={member.avatarUrl} alt={member.name} />
                                                 <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                             </Avatar>
-                                        </div>
+                                            <span>{member.name}</span>
+                                        </Badge>
                                     )
                                 })}
                             </div>
@@ -308,6 +317,7 @@ export default function CreateServicePage() {
                                 control={form.control}
                                 name="teamMemberIds"
                                 render={({ field }) => {
+                                    const roles = Array.isArray(member.role) ? member.role : [member.role];
                                     return (
                                     <FormItem
                                         key={member.id}
@@ -328,9 +338,77 @@ export default function CreateServicePage() {
                                                 <AvatarImage src={member.avatarUrl} alt={member.name}/>
                                                 <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                             </Avatar>
+                                            <div>
+                                                <FormLabel className="font-normal">
+                                                    {member.name}
+                                                </FormLabel>
+                                                <div className='flex flex-wrap gap-1 mt-1'>
+                                                    {roles.map(role => <Badge key={role} variant="outline" className="text-xs">{role}</Badge>)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </FormItem>
+                                    );
+                                }}
+                                />
+                            ))}
+                            </div>
+                        </ScrollArea>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+            {/* Song Selection */}
+            <FormField
+                control={form.control}
+                name="songIds"
+                render={() => (
+                    <FormItem>
+                        <div className="mb-2">
+                           <FormLabel className="text-base font-semibold flex items-center gap-2"><ListMusic/> Select Songs</FormLabel>
+                            <p className="text-sm text-muted-foreground">Choose the songs for this service's setlist.</p>
+                        </div>
+                         {selectedSongIds.length > 0 && (
+                            <div className="flex flex-wrap gap-2 p-3 bg-muted rounded-lg mb-4">
+                                {selectedSongIds.map(id => {
+                                    const song = songs?.find(s => s.id === id);
+                                    if (!song) return null;
+                                    return (
+                                        <Badge variant="secondary" key={id} className="text-sm">
+                                            {song.title}
+                                        </Badge>
+                                    )
+                                })}
+                            </div>
+                        )}
+                        <ScrollArea className="h-60 w-full rounded-md border">
+                            <div className="p-4 space-y-4">
+                            {songs?.map((song) => (
+                                <FormField
+                                key={song.id}
+                                control={form.control}
+                                name="songIds"
+                                render={({ field }) => {
+                                    return (
+                                    <FormItem
+                                        key={song.id}
+                                        className="flex flex-row items-center space-x-3 space-y-0"
+                                    >
+                                        <FormControl>
+                                        <Checkbox
+                                            checked={field.value?.includes(song.id)}
+                                            onCheckedChange={(checked) => {
+                                            return checked
+                                                ? field.onChange([...(field.value || []), song.id])
+                                                : field.onChange(field.value?.filter((value) => value !== song.id));
+                                            }}
+                                        />
+                                        </FormControl>
+                                        <div>
                                             <FormLabel className="font-normal">
-                                                {member.name}
+                                                {song.title}
                                             </FormLabel>
+                                            <p className="text-xs text-muted-foreground">by {song.author} • Key: {song.key}</p>
                                         </div>
                                     </FormItem>
                                     );
