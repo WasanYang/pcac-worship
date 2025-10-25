@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -37,8 +38,8 @@ export default function SongsPage() {
       <CardHeader>
         <div className="flex items-center justify-between gap-4">
             <div>
-                <CardTitle className="text-2xl md:text-3xl">{t('songLibrary')}</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-xl md:text-2xl font-semibold leading-none tracking-tight">{t('songLibrary')}</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground">
                 {t('songLibraryDesc')}
                 </CardDescription>
             </div>
@@ -64,18 +65,6 @@ export default function SongsPage() {
                 </DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button size="sm" variant="outline" className="h-8 gap-1">
-              <File className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                {t('export')}
-              </span>
-            </Button>
-            <Button size="sm" className="h-8 gap-1">
-              <PlusCircle className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                {t('addSong')}
-              </span>
-            </Button>
           </div>
         </div>
       </CardHeader>
@@ -84,10 +73,9 @@ export default function SongsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>{t('song')}</TableHead>
-              <TableHead>{t('themes')}</TableHead>
-              <TableHead>{t('key')}</TableHead>
-              <TableHead>{t('bpm')}</TableHead>
-              <TableHead>{t('lastPlayed')}</TableHead>
+              <TableHead className="hidden sm:table-cell">{t('themes')}</TableHead>
+              <TableHead className="hidden sm:table-cell">{t('key')}</TableHead>
+              <TableHead className="hidden md:table-cell">{t('lastPlayed')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -95,11 +83,14 @@ export default function SongsPage() {
               <TableRow key={song.id}>
                 <TableCell>
                   <div className="font-medium">{song.title}</div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground md:hidden">
+                    {song.author} &middot; {song.key}
+                  </div>
+                   <div className="text-sm text-muted-foreground hidden md:inline">
                     {song.author}
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <div className="flex flex-wrap gap-1">
                     {song.themes.map((theme) => (
                       <Badge key={theme} variant="secondary">
@@ -108,9 +99,8 @@ export default function SongsPage() {
                     ))}
                   </div>
                 </TableCell>
-                <TableCell>{song.key}</TableCell>
-                <TableCell>{song.bpm}</TableCell>
-                <TableCell>{song.lastPlayed}</TableCell>
+                <TableCell className="hidden sm:table-cell">{song.key}</TableCell>
+                <TableCell className="hidden md:table-cell">{song.lastPlayed}</TableCell>
               </TableRow>
             ))}
           </TableBody>
