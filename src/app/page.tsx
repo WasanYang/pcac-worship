@@ -51,55 +51,35 @@ export default function Dashboard() {
     () => (user ? doc(firestore, 'team_members', user.uid) : null),
     [firestore, user]
   );
-  const { data: teamMember } = useDoc<TeamMember>(teamMemberRef);
-
-  const servicesAsLeaderQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    const now = new Date();
-    return query(
-      collection(firestore, 'services'),
-      where('worshipLeaderId', '==', user.uid),
-      where('date', '>=', now.toISOString()),
-      limit(5)
+  const { data: teamMember, isLoading: isLoadingData } =
+    useDoc<TeamMember>(teamMemberRef);
+  useEffect(() => {
+    console.log('teamMember', teamMember);
+  }, [teamMember]);
+  const servicesQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    const ret = query(
+      collection(firestore, 'services')
+      // where('date', '>=', now.toISOString())
     );
-  }, [firestore, user]);
+    return ret;
+  }, [firestore]);
 
-  const servicesAsTeamMemberQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    const now = new Date();
-    return query(
-      collection(firestore, 'services'),
-      // where('team', 'array-contains', user.uid),
-      where('date', '>=', now.toISOString()),
-      limit(5)
-    );
-  }, [firestore, user]);
-
-  const { data: servicesAsLeader } = useCollection<Service>(
-    servicesAsLeaderQuery
-  );
-  const { data: servicesAsTeamMember } = useCollection<Service>(
-    servicesAsTeamMemberQuery
-  );
+  const { data: servicesFromSchedules, isLoading } =
+    useCollection<Service>(servicesQuery);
 
   const [upcomingServices, setUpcomingServices] = useState<Service[]>();
 
   useEffect(() => {
-    if (servicesAsLeader === undefined || servicesAsTeamMember === undefined) {
-      setUpcomingServices(undefined); // Still loading
+    if (!servicesFromSchedules) {
+      setUpcomingServices(undefined);
       return;
     }
-    const combined = new Map<string, Service>();
-    [...(servicesAsLeader || []), ...(servicesAsTeamMember || [])].forEach(
-      (service) => {
-        combined.set(service.id, service);
-      }
-    );
-    const sorted = Array.from(combined.values()).sort(
+    const sorted = [...servicesFromSchedules].sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
     setUpcomingServices(sorted);
-  }, [servicesAsLeader, servicesAsTeamMember]);
+  }, [servicesFromSchedules]);
 
   const accountabilityGroupsQuery = useMemoFirebase(
     () =>
@@ -145,40 +125,45 @@ export default function Dashboard() {
               <Calendar className='h-6 w-6' />
               My Upcoming Services
             </h2>
-            {upcomingServices === undefined ? (
+            {isLoading ? (
               <div className='space-y-4'>
-                {[...Array(2)].map((_, i) => (
-                  <Card key={i} className='flex flex-col md:flex-row'>
-                    <div className='relative w-full h-40 md:w-48 md:h-auto flex-shrink-0 bg-muted animate-pulse'></div>
-                    <div className='p-4 flex flex-col justify-between flex-grow space-y-2'>
-                      <div className='h-5 bg-muted rounded w-3/4 animate-pulse'></div>
-                      <div className='h-4 bg-muted rounded w-1/2 animate-pulse'></div>
-                      <div className='h-4 bg-muted rounded w-1/3 animate-pulse'></div>
-                    </div>
-                  </Card>
-                ))}
+                <div className='grid grid-cols-2 md:grid-cols-1 gap-4'>
+                  {[...Array(2)].map((_, i) => (
+                    <Card key={i} className='flex flex-col'>
+                      <div className='relative w-full h-24 md:h-40 bg-muted animate-pulse'></div>
+                      <div className='p-3 md:p-4 flex flex-col justify-between flex-grow space-y-2'>
+                        <div className='h-4 md:h-5 bg-muted rounded w-3/4 animate-pulse'></div>
+                        <div className='h-3 md:h-4 bg-muted rounded w-1/2 animate-pulse'></div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               </div>
-            ) : upcomingServices.length > 0 ? (
-              <div className='space-y-4'>
+            ) : upcomingServices && upcomingServices.length > 0 ? (
+              <div className='grid grid-cols-2 md:grid-cols-1 gap-4'>
                 {upcomingServices.map((service) => (
                   <Card
                     key={service.id}
-                    className='overflow-hidden flex flex-col md:flex-row'
+                    className='overflow-hidden flex flex-col'
                   >
-                    <div className='relative w-full h-40 md:w-48 md:h-auto flex-shrink-0'>
-                      <Image
-                        src={service.imageUrl}
-                        alt={service.theme}
-                        fill
-                        className='object-cover'
-                        data-ai-hint='worship service'
-                      />
+                    <div className='relative w-full h-24 md:h-40 flex-shrink-0'>
+                      <Link href={`/services/${service.id}`}>
+                        <Image
+                          src={service.imageUrl}
+                          alt={service.theme}
+                          fill
+                          className='object-cover'
+                          data-ai-hint='worship service'
+                        />
+                      </Link>
                     </div>
-                    <div className='p-4 flex flex-col justify-between flex-grow'>
+                    <div className='p-3 md:p-4 flex flex-col justify-between flex-grow'>
                       <div>
-                        <h3 className='text-base md:text-lg font-bold truncate'>
-                          {service.theme}
-                        </h3>
+                        <Link href={`/services/${service.id}`}>
+                          <h3 className='text-sm md:text-lg font-bold truncate hover:underline'>
+                            {service.theme}
+                          </h3>
+                        </Link>
                         <p className='text-sm text-muted-foreground'>
                           {new Date(
                             service.date instanceof Timestamp
@@ -195,16 +180,6 @@ export default function Dashboard() {
                           Led by: {service.worshipLeaderName}
                         </p>
                       </div>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        className='mt-4 self-start'
-                        asChild
-                      >
-                        <Link href={`/services/${service.id}`}>
-                          View Details
-                        </Link>
-                      </Button>
                     </div>
                   </Card>
                 ))}
@@ -224,24 +199,14 @@ export default function Dashboard() {
         {/* Side Column */}
         <div className='lg:col-span-1'>
           <Card className='sticky top-6'>
-            <CardHeader>
-              <CardTitle className='flex items-center gap-2 text-xl md:text-2xl'>
-                <UserCheck className='h-5 w-5' />
-                Your Focus
-              </CardTitle>
-              <CardDescription>
-                Your skills and accountability group.
-              </CardDescription>
-            </CardHeader>
             <CardContent className='space-y-6'>
-              {/* My Skills Section */}
               <div>
                 <div className='flex items-center gap-2 mb-4'>
                   <Target className='h-5 w-5 text-muted-foreground' />
                   <h4 className='font-semibold text-lg'>My Skills</h4>
                 </div>
                 <div className='space-y-4'>
-                  {teamMember === undefined ? ( // Loading state
+                  {isLoadingData ? ( // Loading state
                     <div className='space-y-4'>
                       {[...Array(2)].map((_, i) => (
                         <div key={i} className='space-y-2'>
