@@ -19,11 +19,11 @@ import type { TeamMember } from "@/lib/placeholder-data";
 
 
 export const navItems = [
-  { href: "/", labelKey: "dashboard", icon: LayoutDashboard, adminOnly: false },
-  { href: "/songs", labelKey: "songs", icon: ListMusic, adminOnly: false },
-  { href: "/services", labelKey: "services", icon: Calendar, adminOnly: false },
-  { href: "/team", labelKey: "team", icon: Users, adminOnly: false },
-  { href: "/accountability", labelKey: "accountability", icon: HeartHandshake, adminOnly: false },
+  { href: "/", labelKey: "dashboard", icon: LayoutDashboard },
+  { href: "/songs", labelKey: "songs", icon: ListMusic },
+  { href: "/services", labelKey: "services", icon: Calendar },
+  { href: "/team", labelKey: "team", icon: Users },
+  { href: "/accountability", labelKey: "accountability", icon: HeartHandshake },
 ];
 
 export function SidebarNav() {
@@ -48,9 +48,6 @@ export function SidebarNav() {
         <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
                 {navItems.map((item) => {
-                    if (item.adminOnly && !isAdmin) {
-                        return null;
-                    }
                     const isActive = pathname === item.href;
                     const label = t(item.labelKey as any);
                     return (

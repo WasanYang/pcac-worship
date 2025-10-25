@@ -32,6 +32,8 @@ export default function MainLayout({
       return t(currentNavItem.labelKey as any);
     }
     if (pathname.startsWith('/settings')) return t('settings');
+    if (pathname.startsWith('/team/')) return t('team');
+    if (pathname.startsWith('/admin')) return t('admin');
     return 'Prasiri Worship';
   };
 
@@ -39,24 +41,6 @@ export default function MainLayout({
     <SidebarProvider>
       <div className="min-h-screen w-full">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
-           <Sheet>
-            <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="shrink-0 lg:hidden">
-                    <Menu className="h-5 w-5" />
-                    <span className="sr-only">Toggle navigation menu</span>
-                </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col p-0">
-               <SheetHeader className="border-b px-4 lg:px-6 flex h-14 items-center">
-                  <SheetTitle className="flex items-center gap-2 font-semibold">
-                     <Music className="h-6 w-6" />
-                    <span className="">{t('prasiri')}</span>
-                  </SheetTitle>
-              </SheetHeader>
-               <SidebarNav />
-            </SheetContent>
-          </Sheet>
-
           <div className="w-full flex-1 lg:hidden">
             <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
                 <Music className="h-6 w-6" />
@@ -102,8 +86,8 @@ export default function MainLayout({
 
         {isClient && isMobile && (
           <div className='fixed bottom-0 left-0 z-40 w-full border-t bg-background/95 backdrop-blur-sm'>
-            <div className='grid h-16 grid-cols-4 items-center justify-items-center gap-4 px-4'>
-              {navItems.slice(0, 4).map((item) => {
+            <div className='grid h-16 grid-cols-5 items-center justify-items-center gap-4 px-4'>
+              {navItems.map((item) => {
                 const isActive = pathname === item.href;
                 return (
                   <Link
