@@ -47,17 +47,17 @@ export default function MainLayout({
     <SidebarProvider>
       <div className='min-h-screen w-full'>
         <header className='sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6'>
-          <UserNav />
-          <div className='lg:hidden'>
-            <Link
+          <div className='flex items-center gap-2'>
+             <Link
               href='/'
               className='flex items-center gap-2 font-semibold text-lg'
             >
               <Music className='h-6 w-6' />
-              <span className='sr-only'>{t('prasiri')}</span>
+              <span className='sr-only lg:not-sr-only'>{t('prasiri')}</span>
             </Link>
           </div>
-          <div className='w-8 lg:hidden' />
+          
+          <UserNav />
         </header>
         <div className='lg:flex'>
           <Sidebar
