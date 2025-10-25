@@ -91,8 +91,8 @@ export default function MainLayout({
                             <div className='absolute inset-0 bg-black/50' />
                             <div className='absolute inset-0 flex items-center justify-center'>
                                 <div className='text-center text-white'>
-                                <h1 className='text-4xl font-bold'>{getPageTitle()}</h1>
-                                <p className='text-lg'>Worship Team Management</p>
+                                <h1 className='text-3xl md:text-4xl font-bold'>{getPageTitle()}</h1>
+                                <p className='text-base md:text-lg'>Worship Team Management</p>
                                 </div>
                             </div>
                             </div>

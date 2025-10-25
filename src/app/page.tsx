@@ -77,7 +77,7 @@ export default function Dashboard() {
   return (
     <div className='flex flex-col gap-8'>
        <div className="mb-2">
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
           {t('dashboard')}
         </h1>
         <p className="text-muted-foreground">
@@ -90,7 +90,7 @@ export default function Dashboard() {
         {/* Main Column */}
         <div className="lg:col-span-2 flex flex-col gap-6">
             <div className="space-y-4">
-                <h2 className="text-2xl font-semibold flex items-center gap-2">
+                <h2 className="text-xl md:text-2xl font-semibold flex items-center gap-2">
                     <Calendar className="h-6 w-6"/>
                     My Upcoming Services
                 </h2>
@@ -109,7 +109,7 @@ export default function Dashboard() {
                         </div>
                         <div className="p-4 flex flex-col justify-between flex-grow">
                             <div>
-                                <h3 className='text-lg font-bold truncate'>{service.theme}</h3>
+                                <h3 className='text-base md:text-lg font-bold truncate'>{service.theme}</h3>
                                 <p className='text-sm text-muted-foreground'>
                                     {new Date(service.date instanceof Timestamp ? service.date.toDate() : service.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                                 </p>
@@ -134,7 +134,7 @@ export default function Dashboard() {
         <div className="lg:col-span-1">
              <Card className="sticky top-6">
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-xl md:text-2xl">
                         <UserCheck className='h-5 w-5' />
                         Your Focus
                     </CardTitle>

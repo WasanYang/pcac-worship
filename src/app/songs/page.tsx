@@ -37,7 +37,7 @@ export default function SongsPage() {
       <CardHeader>
         <div className="flex items-center justify-between gap-4">
             <div>
-                <CardTitle>{t('songLibrary')}</CardTitle>
+                <CardTitle className="text-2xl md:text-3xl">{t('songLibrary')}</CardTitle>
                 <CardDescription>
                 {t('songLibraryDesc')}
                 </CardDescription>

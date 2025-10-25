@@ -29,7 +29,7 @@ export default function TeamPage() {
     <div className='flex flex-col gap-8'>
       <div className='flex items-center justify-between'>
         <div>
-          <h1 className='text-3xl font-bold tracking-tight'>
+          <h1 className='text-2xl md:text-3xl font-bold tracking-tight'>
             {t('teamMembers')}
           </h1>
           <p className='text-muted-foreground'>{t('teamMembersDesc')}</p>
@@ -61,7 +61,7 @@ export default function TeamPage() {
                   </Avatar>
                 </CardHeader>
                 <CardContent className="flex-grow flex flex-col justify-center">
-                  <CardTitle className="text-lg">{member.name}</CardTitle>
+                  <CardTitle className="text-base md:text-lg">{member.name}</CardTitle>
                   <div className='mt-2'>
                       <div className='flex flex-wrap justify-center items-center gap-1 text-xs'>
                           {displayedRoles.map((role) => (

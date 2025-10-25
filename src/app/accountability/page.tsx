@@ -27,7 +27,7 @@ export default function AccountabilityPage() {
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
         <div>
-            <h1 className="text-3xl font-bold tracking-tight">{t('accountabilityGroups')}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('accountabilityGroups')}</h1>
             <p className="text-muted-foreground">{t('accountabilityGroupsDesc')}</p>
         </div>
         <Button>

@@ -24,7 +24,7 @@ export default function ServicesPage() {
     <div className="flex flex-col gap-8">
        <div className="flex items-center justify-between">
         <div>
-            <h1 className="text-3xl font-bold tracking-tight">{t('services')}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('services')}</h1>
             <p className="text-muted-foreground">{t('servicesDesc')}</p>
         </div>
         <Button>
@@ -46,7 +46,7 @@ export default function ServicesPage() {
                 />
             </div>
             <CardHeader className="p-2 pt-4">
-              <CardTitle className="text-base truncate">{service.theme}</CardTitle>
+              <CardTitle className="text-sm md:text-base truncate">{service.theme}</CardTitle>
               <CardDescription className="text-xs">{service.date}</CardDescription>
             </CardHeader>
           </Card>

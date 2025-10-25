@@ -36,7 +36,7 @@ export default function TeamMemberDetailPage() {
   if (!teamMember) {
     return (
       <div className="text-center">
-        <h2 className="text-2xl font-semibold">Team Member Not Found</h2>
+        <h2 className="text-xl md:text-2xl font-semibold">Team Member Not Found</h2>
         <p>The user you are looking for does not exist.</p>
         <Button onClick={() => window.history.back()} className="mt-4">Go Back</Button>
       </div>
@@ -55,7 +55,7 @@ export default function TeamMemberDetailPage() {
                         <AvatarImage src={teamMember.avatarUrl} alt={teamMember.name} />
                         <AvatarFallback>{teamMember.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
-                    <CardTitle className="text-2xl">{teamMember.name}</CardTitle>
+                    <CardTitle className="text-xl md:text-2xl">{teamMember.name}</CardTitle>
                     <div className='flex flex-wrap justify-center gap-1 pt-2'>
                         {userRoles.map(role => <Badge key={role} variant="secondary">{role}</Badge>)}
                     </div>
@@ -71,7 +71,7 @@ export default function TeamMemberDetailPage() {
         <div className="lg:col-span-2">
             <Card>
                 <CardHeader>
-                    <CardTitle>Details</CardTitle>
+                    <CardTitle className="text-xl md:text-2xl">Details</CardTitle>
                     <CardDescription>Member information and activity.</CardDescription>
                 </CardHeader>
                 <CardContent>
