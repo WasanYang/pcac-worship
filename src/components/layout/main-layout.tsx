@@ -4,13 +4,6 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SidebarProvider, Sidebar } from '@/components/ui/sidebar';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
 import { SidebarNav, navItems } from '@/components/layout/sidebar-nav';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -18,9 +11,7 @@ import { useI18n } from '@/providers/i18n-provider';
 import Image from 'next/image';
 import { placeholderImages } from '@/lib/placeholder-images.json';
 import { UserNav } from './user-nav';
-import { Button } from '../ui/button';
-import { Menu, Music } from 'lucide-react';
-import { Separator } from '../ui/separator';
+import { Music } from 'lucide-react';
 import { Carousel, CarouselContent, CarouselItem } from '../ui/carousel';
 
 export default function MainLayout({
@@ -64,7 +55,7 @@ export default function MainLayout({
         <div className='lg:flex'>
           <Sidebar
             side='left'
-            className='hidden lg:block flex-shrink-0 w-64 border-r'
+            className='hidden lg:block flex-shrink-0 w-64 border-r mt-[60px]'
           >
             <SidebarNav />
           </Sidebar>
