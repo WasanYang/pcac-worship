@@ -25,21 +25,32 @@ import { useUser, useFirestore, useDoc, useMemoFirebase, useAuth } from "@/fireb
 import type { TeamMember } from "@/lib/placeholder-data";
 import { doc, updateDoc } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Upload, X, Calendar as CalendarIcon } from "lucide-react";
+import { Upload, X, Calendar as CalendarIcon, PlusCircle, Trash2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AnimatePresence, motion } from "framer-motion";
+import { Progress } from "@/components/ui/progress";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Slider } from "@/components/ui/slider";
+import { Separator } from "@/components/ui/separator";
+
 
 const profileFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
   avatarUrl: z.string().optional(),
+  skills: z.array(z.object({
+    skill: z.string().min(1, "Skill name is required"),
+    progress: z.number().min(0).max(100),
+  })).optional(),
 });
+
+type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export default function SettingsPage() {
   const { t } = useI18n();
@@ -59,17 +70,31 @@ export default function SettingsPage() {
   );
   const { data: teamMember, isLoading: isTeamMemberLoading } = useDoc<TeamMember>(teamMemberRef);
 
-  const profileForm = useForm<z.infer<typeof profileFormSchema>>({
+  const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    values: {
-      name: teamMember?.name || "",
-      avatarUrl: teamMember?.avatarUrl || "",
-    },
+    defaultValues: {
+      name: "",
+      avatarUrl: "",
+      skills: [],
+    }
   });
+
+  const { fields, append, remove } = useFieldArray({
+    control: profileForm.control,
+    name: "skills",
+  });
+  
+  const [newSkillName, setNewSkillName] = useState("");
+  const [newSkillProgress, setNewSkillProgress] = useState(50);
+
 
   useEffect(() => {
     if (teamMember) {
-      profileForm.reset({ name: teamMember.name, avatarUrl: teamMember.avatarUrl });
+      profileForm.reset({ 
+        name: teamMember.name, 
+        avatarUrl: teamMember.avatarUrl,
+        skills: teamMember.skills || []
+      });
       if (teamMember.blockoutDates) {
         const dates = teamMember.blockoutDates.map(d => {
             const [year, month, day] = d.split('-').map(Number);
@@ -110,7 +135,7 @@ export default function SettingsPage() {
   };
 
 
-  const handleProfileUpdate = async (values: z.infer<typeof profileFormSchema>) => {
+  const handleProfileUpdate = async (values: ProfileFormValues) => {
     if (!teamMemberRef || !user) return;
     setIsLoading(true);
     try {
@@ -118,6 +143,7 @@ export default function SettingsPage() {
       await updateDoc(teamMemberRef, {
         name: values.name,
         avatarUrl: values.avatarUrl,
+        skills: values.skills,
       });
       
       // Update Firebase Auth profile
@@ -185,6 +211,20 @@ export default function SettingsPage() {
     const removeDate = (dateToRemove: Date) => {
         setSelectedDates(prev => prev?.filter(date => date.getTime() !== dateToRemove.getTime()));
     }
+
+  const handleAddSkill = () => {
+    if (newSkillName.trim()) {
+      append({ skill: newSkillName.trim(), progress: newSkillProgress });
+      setNewSkillName("");
+      setNewSkillProgress(50);
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Skill name required",
+            description: "Please enter a name for the skill."
+        })
+    }
+  };
 
 
   const userRoles = Array.isArray(teamMember?.role) ? teamMember.role : (teamMember?.role ? [teamMember.role] : []);
@@ -263,6 +303,70 @@ export default function SettingsPage() {
                   <div className="space-y-2">
                     <Label htmlFor="email">{t('email')}</Label>
                     <Input id="email" type="email" value={teamMember?.email || ""} disabled />
+                  </div>
+
+                  <Separator />
+                  
+                  <div className="space-y-4">
+                      <Label>My Skills</Label>
+                      <div className="space-y-4">
+                          {fields.map((field, index) => (
+                              <div key={field.id} className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+                                  <div className="flex-1 space-y-2">
+                                      <div className="flex justify-between items-baseline">
+                                        <p className="font-medium">{field.skill}</p>
+                                        <p className="text-sm text-muted-foreground">{field.progress}%</p>
+                                      </div>
+                                      <Progress value={field.progress} className="h-2"/>
+                                  </div>
+                                  <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="h-8 w-8 flex-shrink-0">
+                                      <Trash2 className="h-4 w-4 text-destructive"/>
+                                      <span className="sr-only">Remove skill</span>
+                                  </Button>
+                              </div>
+                          ))}
+                            {fields.length === 0 && (
+                                <p className="text-sm text-muted-foreground italic text-center py-4">No skills added yet.</p>
+                            )}
+                      </div>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                             <Button type="button" variant="outline" size="sm" className="mt-2">
+                                <PlusCircle className="mr-2 h-4 w-4"/>
+                                Add Skill
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
+                            <div className="grid gap-4">
+                                <div className="space-y-2">
+                                    <h4 className="font-medium leading-none">Add a new skill</h4>
+                                    <p className="text-sm text-muted-foreground">
+                                    Enter the skill name and proficiency level.
+                                    </p>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="new-skill-name">Skill Name</Label>
+                                    <Input 
+                                        id="new-skill-name"
+                                        value={newSkillName}
+                                        onChange={(e) => setNewSkillName(e.target.value)}
+                                        placeholder="e.g., Acoustic Guitar"
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="new-skill-progress">Proficiency: {newSkillProgress}%</Label>
+                                    <Slider 
+                                        id="new-skill-progress"
+                                        defaultValue={[newSkillProgress]}
+                                        max={100}
+                                        step={5}
+                                        onValueChange={(value) => setNewSkillProgress(value[0])}
+                                    />
+                                </div>
+                                <Button onClick={handleAddSkill}>Add Skill</Button>
+                            </div>
+                        </PopoverContent>
+                      </Popover>
                   </div>
                 </CardContent>
                 <CardFooter className="justify-end">
