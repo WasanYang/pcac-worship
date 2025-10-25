@@ -51,7 +51,7 @@ export default function Dashboard() {
   const accountabilityGroupsQuery = useMemoFirebase(() => user ? query(collection(firestore, 'peer_groups'), where('memberIds', 'array-contains', user.uid)) : null, [firestore, user]);
   const { data: accountabilityGroups } = useCollection<AccountabilityGroup>(accountabilityGroupsQuery);
 
-  const upcomingServices = userServices
+  const upcomingServices = placeholderServices
     ?.filter(service => {
         try {
             // Handle both string dates and Firestore Timestamps
