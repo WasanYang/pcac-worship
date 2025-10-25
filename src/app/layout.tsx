@@ -6,12 +6,6 @@ export const metadata: Metadata = {
   title: 'Worship Flow',
   description: 'Streamline your worship service planning and team management.',
   manifest: '/manifest.json',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
 };
 
 export const viewport = {
@@ -19,6 +13,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: '#1DB954',
 };
 
 export default function RootLayout({
@@ -29,8 +24,7 @@ export default function RootLayout({
   return (
     <html lang='en' suppressHydrationWarning>
       <head>
-        <meta name='theme-color' content='#1DB954' />
-        <link rel='apple-touch-icon' href='/icons/icon-192x192.png'></link>
+        <link rel='apple-touch-icon' href='/icons/192.png'></link>
         <link rel='preconnect' href='https://fonts.googleapis.com' />
         <link
           rel='preconnect'

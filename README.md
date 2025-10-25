@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/icons/icon-192x192.png" alt="Worship Flow Logo" width="120">
+  <img src="public/icons/192.png" alt="Worship Flow Logo" width="120">
   <h1>Worship Flow (ระบบจัดการทีมนมัสการ)</h1>
   <p>เว็บแอปพลิเคชันสำหรับช่วยวางแผนและจัดการทีมนมัสการสำหรับคริสตจักร</p>
 </div>
