@@ -14,6 +14,8 @@ import { collection } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 
+const MAX_ROLES_TO_SHOW = 4;
+
 export default function TeamPage() {
   const { t } = useI18n();
   const firestore = useFirestore();
@@ -35,41 +37,50 @@ export default function TeamPage() {
       </div>
 
       <div className='grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4'>
-        {allUsers?.map((member) => (
-          <Link href={`/team/${member.id}`} key={member.id}>
-            <Card  className='text-center h-full hover:bg-muted/50 transition-colors'>
-              <CardHeader>
-                <Avatar className='mx-auto h-20 w-20'>
-                  <AvatarImage
-                    src={member.avatarUrl}
-                    alt={member.name}
-                    data-ai-hint='person portrait'
-                  />
-                  <AvatarFallback>
-                    {member.name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')}
-                  </AvatarFallback>
-                </Avatar>
-              </CardHeader>
-              <CardContent>
-                <CardTitle className="text-lg">{member.name}</CardTitle>
-                 <div className='mt-2 line-clamp-2 max-h-12 overflow-hidden'>
-                    <div className='flex flex-wrap justify-center gap-1'>
-                        {(Array.isArray(member.role) ? member.role : [member.role]).map(
-                            (role) => (
-                              <Badge key={role} variant='secondary' className="text-xs">
-                                {role}
-                              </Badge>
-                            )
+        {allUsers?.map((member) => {
+          const roles = Array.isArray(member.role) ? member.role : [member.role];
+          const displayedRoles = roles.slice(0, MAX_ROLES_TO_SHOW);
+          const remainingRoles = roles.length - displayedRoles.length;
+
+          return (
+            <Link href={`/team/${member.id}`} key={member.id}>
+              <Card  className='text-center h-full hover:bg-muted/50 transition-colors flex flex-col'>
+                <CardHeader>
+                  <Avatar className='mx-auto h-20 w-20'>
+                    <AvatarImage
+                      src={member.avatarUrl}
+                      alt={member.name}
+                      data-ai-hint='person portrait'
+                    />
+                    <AvatarFallback>
+                      {member.name
+                        .split(' ')
+                        .map((n) => n[0])
+                        .join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                </CardHeader>
+                <CardContent className="flex-grow flex flex-col justify-center">
+                  <CardTitle className="text-lg">{member.name}</CardTitle>
+                  <div className='mt-2'>
+                      <div className='flex flex-wrap justify-center items-center gap-1 text-xs'>
+                          {displayedRoles.map((role) => (
+                            <Badge key={role} variant='secondary' className="text-xs font-normal">
+                              {role}
+                            </Badge>
+                          ))}
+                          {remainingRoles > 0 && (
+                             <Badge variant='outline' className="text-xs font-normal">
+                                +{remainingRoles} more
+                            </Badge>
                           )}
-                    </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+                      </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          )
+        })}
       </div>
     </div>
   );
