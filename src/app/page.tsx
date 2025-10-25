@@ -11,20 +11,15 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { HeartHandshake, ListMusic, Users, CalendarDays, User, Target, Calendar, UserCheck } from 'lucide-react';
-import {
-  recentSongs,
-  upcomingServices as placeholderServices,
-  teamMembers as placeholderTeamMembers,
-  accountabilityGroups as placeholderAccountabilityGroups,
-} from '@/lib/placeholder-data';
 import { useI18n } from '@/providers/i18n-provider';
 import { useUser, useDoc, useCollection, useMemoFirebase } from '@/firebase';
-import { doc, collection, query, where, Timestamp } from 'firebase/firestore';
+import { doc, collection, query, where, Timestamp, limit } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import type { Service, TeamMember, AccountabilityGroup, Schedule } from '@/lib/placeholder-data';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 
 export default function Dashboard() {
@@ -42,33 +37,20 @@ export default function Dashboard() {
 
   const servicesQuery = useMemoFirebase(() => {
     if (!firestore || serviceIds.length === 0) return null;
+    const now = new Date();
     // Firestore 'in' queries are limited to 30 items.
     // If you expect more, you'll need to handle batching.
-    return query(collection(firestore, 'services'), where('id', 'in', serviceIds.slice(0, 30)));
+    return query(
+        collection(firestore, 'services'), 
+        where('id', 'in', serviceIds.slice(0, 30)),
+        where('date', '>=', now.toISOString()),
+        limit(5)
+    );
   }, [firestore, serviceIds]);
-  const { data: userServices } = useCollection<Service>(servicesQuery);
+  const { data: upcomingServices } = useCollection<Service>(servicesQuery);
 
   const accountabilityGroupsQuery = useMemoFirebase(() => user ? query(collection(firestore, 'peer_groups'), where('memberIds', 'array-contains', user.uid)) : null, [firestore, user]);
   const { data: accountabilityGroups } = useCollection<AccountabilityGroup>(accountabilityGroupsQuery);
-
-  const upcomingServices = placeholderServices
-    ?.filter(service => {
-        try {
-            const serviceDate = service.date instanceof Timestamp 
-                ? service.date.toDate() 
-                : new Date(service.date as string);
-            return serviceDate > new Date();
-        } catch (e) {
-            return false;
-        }
-    })
-    .sort((a, b) => {
-        const dateA = a.date instanceof Timestamp ? a.date.toDate() : new Date(a.date as string);
-        const dateB = b.date instanceof Timestamp ? b.date.toDate() : new Date(b.date as string);
-        return dateA.getTime() - dateB.getTime();
-    })
-    .slice(0, 5) || [];
-
 
   const currentAccountabilityGroup = accountabilityGroups?.[0];
   const groupLeaderRef = useMemoFirebase(() => currentAccountabilityGroup ? doc(firestore, 'team_members', currentAccountabilityGroup.leaderId) : null, [firestore, currentAccountabilityGroup]);
@@ -95,7 +77,7 @@ export default function Dashboard() {
                     <Calendar className="h-6 w-6"/>
                     My Upcoming Services
                 </h2>
-                {upcomingServices.length > 0 ? (
+                {upcomingServices && upcomingServices.length > 0 ? (
                     <div className="space-y-4">
                     {upcomingServices.map((service) => (
                     <Card key={service.id} className="overflow-hidden flex flex-col md:flex-row">
@@ -116,7 +98,9 @@ export default function Dashboard() {
                                 </p>
                                 <p className='text-sm text-muted-foreground'>Led by: {service.worshipLeaderName}</p>
                             </div>
-                             <Button variant="outline" size="sm" className="mt-4 self-start">View Details</Button>
+                             <Button variant="outline" size="sm" className="mt-4 self-start" asChild>
+                                <Link href={`/services/${service.id}`}>View Details</Link>
+                             </Button>
                         </div>
                     </Card>
                     ))}
@@ -174,7 +158,7 @@ export default function Dashboard() {
                         {currentAccountabilityGroup ? (
                             <div className="space-y-2">
                                 <p className="font-semibold">{currentAccountabilityGroup.name}</p>
-                                <p className="text-sm text-muted-foreground">Led by: {groupLeader?.name || '...'}</p>
+                                <p className="text-sm text-muted-foreground">Led by: {groupLeader?.name || currentAccountabilityGroup.leaderName || '...'}</p>
                             </div>
                         ) : (
                             <p className="text-sm text-muted-foreground">You are not in any accountability group yet.</p>
