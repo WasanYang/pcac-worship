@@ -32,7 +32,7 @@ export default function ServicesPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
         {upcomingServices.map((service) => (
           <Card key={service.id} className="flex flex-col bg-transparent shadow-none border-0">
              <div className="overflow-hidden rounded-md">
