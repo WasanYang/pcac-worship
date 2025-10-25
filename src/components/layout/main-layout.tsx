@@ -32,8 +32,9 @@ export default function MainLayout({
   const pathname = usePathname();
   const { t } = useI18n();
   // For demonstration, we'll use a few images for the carousel
-  const bannerImages = placeholderImages.filter((p) => p.id.startsWith('homeBanner') || p.id.startsWith('service'));
-
+  const bannerImages = placeholderImages.filter(
+    (p) => p.id.startsWith('homeBanner') || p.id.startsWith('service')
+  );
 
   const getPageTitle = () => {
     const currentNavItem = navItems.find((item) => item.href === pathname);
@@ -43,21 +44,21 @@ export default function MainLayout({
     if (pathname.startsWith('/settings')) return t('settings');
     if (pathname.startsWith('/team/')) return t('team');
     if (pathname.startsWith('/admin')) return t('admin');
-    return 'Prasiri Worship';
+    return 'Worship Flow';
   };
 
   return (
     <SidebarProvider>
       <div className='min-h-screen w-full'>
         <header className='sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6'>
-            <Link
-              href='/'
-              className='flex items-center gap-2 font-semibold text-lg'
-            >
-              <Music className='h-6 w-6' />
-              <span className='sr-only lg:not-sr-only'>{t('prasiri')}</span>
-            </Link>
-          
+          <Link
+            href='/'
+            className='flex items-center gap-2 font-semibold text-lg'
+          >
+            <Music className='h-6 w-6' />
+            <span className='sr-only lg:not-sr-only'>{t('prasiri')}</span>
+          </Link>
+
           <UserNav />
         </header>
         <div className='lg:flex'>
@@ -70,43 +71,47 @@ export default function MainLayout({
 
           <div className='flex flex-col flex-1'>
             {bannerImages.length > 0 && (
-                <div className='w-full lg:p-6 lg:pb-0'>
-                    <Carousel
-                    opts={{
-                        loop: true,
-                    }}
-                    className='w-full'
-                    >
-                    <CarouselContent className='-ml-0'>
-                        {bannerImages.map((image, index) => (
-                        <CarouselItem key={index} className='pl-0'>
-                            <div className='relative w-full h-48 lg:h-64 lg:rounded-lg overflow-hidden'>
-                            <Image
-                                src={image.imageUrl}
-                                alt={image.description || 'Banner image'}
-                                fill
-                                className='object-cover'
-                                data-ai-hint={image.imageHint}
-                            />
-                            <div className='absolute inset-0 bg-black/50' />
-                            <div className='absolute inset-0 flex items-center justify-center'>
-                                <div className='text-center text-white'>
-                                <h1 className='text-3xl md:text-4xl font-bold'>{getPageTitle()}</h1>
-                                <p className='text-base md:text-lg'>Worship Team Management</p>
-                                </div>
+              <div className='w-full lg:p-6 lg:pb-0'>
+                <Carousel
+                  opts={{
+                    loop: true,
+                  }}
+                  className='w-full'
+                >
+                  <CarouselContent className='-ml-0'>
+                    {bannerImages.map((image, index) => (
+                      <CarouselItem key={index} className='pl-0'>
+                        <div className='relative w-full h-48 lg:h-64 lg:rounded-lg overflow-hidden'>
+                          <Image
+                            src={image.imageUrl}
+                            alt={image.description || 'Banner image'}
+                            fill
+                            className='object-cover'
+                            data-ai-hint={image.imageHint}
+                          />
+                          <div className='absolute inset-0 bg-black/50' />
+                          <div className='absolute inset-0 flex items-center justify-center'>
+                            <div className='text-center text-white'>
+                              <h1 className='text-3xl md:text-4xl font-bold'>
+                                {getPageTitle()}
+                              </h1>
+                              <p className='text-base md:text-lg'>
+                                Worship Team Management
+                              </p>
                             </div>
-                            </div>
-                        </CarouselItem>
-                        ))}
-                    </CarouselContent>
-                    </Carousel>
-                </div>
+                          </div>
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                </Carousel>
+              </div>
             )}
             <main
               className={cn(
                 'flex-1 flex flex-col gap-4 p-4 lg:gap-6 lg:p-6',
-                 isClient && isMobile ? 'pb-24' : 'pb-4',
-                 !bannerImages.length && 'pt-6'
+                isClient && isMobile ? 'pb-24' : 'pb-4',
+                !bannerImages.length && 'pt-6'
               )}
             >
               <div className='flex-1'>{children}</div>

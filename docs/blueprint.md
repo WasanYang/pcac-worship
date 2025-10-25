@@ -1,4 +1,4 @@
-# **App Name**: Prasiri Worship Manager
+# **App Name**: Worship Flow
 
 ## Core Features:
 

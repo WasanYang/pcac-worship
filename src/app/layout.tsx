@@ -3,8 +3,8 @@ import { AppProviders } from '@/providers/app-providers';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Prasiri Worship Manager',
-  description: 'Manage your worship services with ease.',
+  title: 'Worship Flow',
+  description: 'Streamline your worship service planning and team management.',
   manifest: '/manifest.json',
   viewport: {
     width: 'device-width',
