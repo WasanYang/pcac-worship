@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,28 +21,35 @@ import {
 } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import { useI18n } from "@/providers/i18n-provider";
-import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { useUser, useFirestore, useDoc, useMemoFirebase, useAuth } from "@/firebase";
 import type { TeamMember } from "@/lib/placeholder-data";
-import { doc, updateDoc, Timestamp } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
+import { updateProfile } from "firebase/auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Upload } from "lucide-react";
 
 const profileFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  avatarUrl: z.string().optional(),
 });
 
 export default function SettingsPage() {
   const { t } = useI18n();
   const { user } = useUser();
+  const auth = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDates, setSelectedDates] = useState<Date[] | undefined>([]);
   const [isSavingBlockout, setIsSavingBlockout] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const teamMemberRef = useMemoFirebase(
     () => (user ? doc(firestore, "team_members", user.uid) : null),
@@ -54,29 +61,68 @@ export default function SettingsPage() {
     resolver: zodResolver(profileFormSchema),
     values: {
       name: teamMember?.name || "",
+      avatarUrl: teamMember?.avatarUrl || "",
     },
   });
 
-  // Effect to update forms when teamMember data loads
   useEffect(() => {
     if (teamMember) {
-      profileForm.reset({ name: teamMember.name });
+      profileForm.reset({ name: teamMember.name, avatarUrl: teamMember.avatarUrl });
       if (teamMember.blockoutDates) {
-        setSelectedDates(teamMember.blockoutDates.map(d => new Date(d + 'T00:00:00'))); // Adjust to local timezone
+        setSelectedDates(teamMember.blockoutDates.map(d => new Date(d + 'T00:00:00')));
       }
+      setImagePreview(teamMember.avatarUrl);
     }
   }, [teamMember, profileForm]);
+  
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        toast({
+          variant: "destructive",
+          title: "File too large",
+          description: "Please upload an image smaller than 2MB."
+        });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        profileForm.setValue('avatarUrl', result);
+        setImagePreview(result);
+      };
+      reader.onerror = () => {
+         toast({
+          variant: "destructive",
+          title: "Error reading file",
+          description: "Could not read the selected image file."
+        });
+      }
+      reader.readAsDataURL(file);
+    }
+  };
+
 
   const handleProfileUpdate = async (values: z.infer<typeof profileFormSchema>) => {
-    if (!teamMemberRef) return;
+    if (!teamMemberRef || !user) return;
     setIsLoading(true);
     try {
+      // Update Firestore document
       await updateDoc(teamMemberRef, {
         name: values.name,
+        avatarUrl: values.avatarUrl,
       });
+      
+      // Update Firebase Auth profile
+      await updateProfile(user, {
+        displayName: values.name,
+        photoURL: values.avatarUrl,
+      });
+
       toast({
         title: "Profile Updated",
-        description: "Your name has been successfully updated.",
+        description: "Your profile has been successfully updated.",
       });
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -147,7 +193,38 @@ export default function SettingsPage() {
                     {t('profileDesc')}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
+                    <FormField
+                        control={profileForm.control}
+                        name="avatarUrl"
+                        render={() => (
+                           <FormItem className="flex flex-col items-center text-center gap-4">
+                            <FormLabel>Profile Picture</FormLabel>
+                            <FormControl>
+                                 <div className="relative">
+                                    <Avatar className="w-24 h-24 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                                        <AvatarImage src={imagePreview || undefined} alt={teamMember?.name} />
+                                        <AvatarFallback>{teamMember?.name?.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                    </Avatar>
+                                    <div 
+                                        className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                                        onClick={() => fileInputRef.current?.click()}
+                                    >
+                                        <Upload className="h-6 w-6 text-white" />
+                                    </div>
+                                </div>
+                            </FormControl>
+                             <Input 
+                                type="file" 
+                                className="hidden" 
+                                ref={fileInputRef} 
+                                onChange={handleImageUpload}
+                                accept="image/png, image/jpeg, image/webp"
+                            />
+                            <FormMessage />
+                           </FormItem>
+                        )}
+                    />
                   <FormField
                     control={profileForm.control}
                     name="name"
@@ -166,7 +243,7 @@ export default function SettingsPage() {
                     <Input id="email" type="email" value={teamMember?.email || ""} disabled />
                   </div>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="justify-end">
                   <Button type="submit" disabled={isLoading || isTeamMemberLoading}>
                     {isLoading ? "Saving..." : t('saveChanges')}
                   </Button>
@@ -241,7 +318,7 @@ export default function SettingsPage() {
                         </div>
                     )}
                 </CardContent>
-                 <CardFooter>
+                 <CardFooter className="justify-end">
                     <Button onClick={handleSaveBlockoutDates} disabled={isSavingBlockout || isTeamMemberLoading}>
                         {isSavingBlockout ? 'Saving...' : 'Save Blockout Dates'}
                     </Button>
@@ -252,3 +329,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    
