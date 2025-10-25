@@ -1,5 +1,6 @@
 
 import { placeholderImages } from './placeholder-images.json';
+import type { Timestamp } from 'firebase/firestore';
 
 export type Song = {
   id: string;
@@ -20,8 +21,9 @@ export type Service = {
   id: string;
   theme: string;
   sermonTheme: string;
-  date: string;
-  worshipLeader: string;
+  date: string | Date | Timestamp;
+  worshipLeaderId: string;
+  worshipLeaderName: string;
   imageUrl: string;
   team: { role: string; member: string | null }[];
   setlist: Song[];
@@ -45,8 +47,9 @@ export type AccountabilityGroup = {
   id: string;
   name: string;
   leaderId: string;
+  leaderName: string;
   memberIds: string[];
-  members: { name: string; contactStatus: 'Contacted' | 'Pending' | 'Missed' }[];
+  members: { id: string; name: string; contactStatus: 'Contacted' | 'Pending' | 'Missed' }[];
 };
 
 export type Schedule = {
@@ -90,15 +93,15 @@ export const teamMembers: TeamMember[] = [
 ];
 
 export const upcomingServices: Service[] = [
-  { id: '1', theme: "Sunday Morning Worship", sermonTheme: "Love That Lasts", date: "May 26, 2024", worshipLeader: "Alex Ray", imageUrl: placeholderImages.find(p => p.id === 'service1')?.imageUrl || '', team: [], setlist: [] },
-  { id: '2', theme: "Youth Night", sermonTheme: "Fearless Generation", date: "May 31, 2024", worshipLeader: "Taylor Green", imageUrl: placeholderImages.find(p => p.id === 'service2')?.imageUrl || '', team: [], setlist: [] },
-  { id: '3', theme: "Sunday Morning Worship", sermonTheme: "Foundations of Faith", date: "June 2, 2024", worshipLeader: "Alex Ray", imageUrl: placeholderImages.find(p => p.id === 'service3')?.imageUrl || '', team: [], setlist: [] },
-  { id: '4', theme: "Mid-week Prayer", sermonTheme: "The Power of Prayer", date: "June 5, 2024", worshipLeader: "Jordan Lee", imageUrl: placeholderImages.find(p => p.id === 'service4')?.imageUrl || '', team: [], setlist: [] },
-  { id: '5', theme: "Good Friday Special", sermonTheme: "It is Finished", date: "June 7, 2024", worshipLeader: "Alex Ray", imageUrl: placeholderImages.find(p => p.id === 'service5')?.imageUrl || '', team: [], setlist: [] },
-  { id: '6', theme: "Easter Sunday Celebration", sermonTheme: "He is Risen", date: "June 9, 2024", worshipLeader: "Taylor Green", imageUrl: placeholderImages.find(p => p.id === 'service6')?.imageUrl || '', team: [], setlist: [] },
+  { id: '1', theme: "Sunday Morning Worship", sermonTheme: "Love That Lasts", date: "May 26, 2024", worshipLeaderId: "1", worshipLeaderName: "Alex Ray", imageUrl: placeholderImages.find(p => p.id === 'service1')?.imageUrl || '', team: [], setlist: [] },
+  { id: '2', theme: "Youth Night", sermonTheme: "Fearless Generation", date: "May 31, 2024", worshipLeaderId: "4", worshipLeaderName: "Taylor Green", imageUrl: placeholderImages.find(p => p.id === 'service2')?.imageUrl || '', team: [], setlist: [] },
+  { id: '3', theme: "Sunday Morning Worship", sermonTheme: "Foundations of Faith", date: "June 2, 2024", worshipLeaderId: "1", worshipLeaderName: "Alex Ray", imageUrl: placeholderImages.find(p => p.id === 'service3')?.imageUrl || '', team: [], setlist: [] },
+  { id: '4', theme: "Mid-week Prayer", sermonTheme: "The Power of Prayer", date: "June 5, 2024", worshipLeaderId: "2", worshipLeaderName: "Jordan Lee", imageUrl: placeholderImages.find(p => p.id === 'service4')?.imageUrl || '', team: [], setlist: [] },
+  { id: '5', theme: "Good Friday Special", sermonTheme: "It is Finished", date: "June 7, 2024", worshipLeaderId: "1", worshipLeaderName: "Alex Ray", imageUrl: placeholderImages.find(p => p.id === 'service5')?.imageUrl || '', team: [], setlist: [] },
+  { id: '6', theme: "Easter Sunday Celebration", sermonTheme: "He is Risen", date: "June 9, 2024", worshipLeaderId: "4", worshipLeaderName: "Taylor Green", imageUrl: placeholderImages.find(p => p.id === 'service6')?.imageUrl || '', team: [], setlist: [] },
 ];
 
 export const accountabilityGroups: AccountabilityGroup[] = [
-  { id: '1', name: "The Iron Men", leaderId: "1", memberIds: ['2', '3'], members: [{ name: "Jordan Lee", contactStatus: 'Contacted' }, { name: "Casey Smith", contactStatus: 'Pending' }] },
-  { id: '2', name: "Sisters in Spirit", leaderId: "4", memberIds: ['5'], members: [{ name: "Morgan Blue", contactStatus: 'Contacted' }] },
+  { id: '1', name: "The Iron Men", leaderId: "1", leaderName: "Alex Ray", memberIds: ['2', '3'], members: [{id: '2', name: "Jordan Lee", contactStatus: 'Contacted' }, { id: '3', name: "Casey Smith", contactStatus: 'Pending' }] },
+  { id: '2', name: "Sisters in Spirit", leaderId: "4", leaderName: "Taylor Green", memberIds: ['5'], members: [{ id: '5', name: "Morgan Blue", contactStatus: 'Contacted' }] },
 ];

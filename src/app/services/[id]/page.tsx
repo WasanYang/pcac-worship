@@ -3,7 +3,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { doc, Timestamp } from 'firebase/firestore';
 import type { Service, Song, TeamMember } from '@/lib/placeholder-data';
 import {
   Card,
@@ -66,6 +66,9 @@ export default function ServiceDetailPage() {
       </div>
     );
   }
+  
+  const serviceDate = service.date instanceof Timestamp ? service.date.toDate() : new Date(service.date);
+
 
   return (
     <div className='flex flex-col gap-8'>
@@ -89,11 +92,11 @@ export default function ServiceDetailPage() {
                     <CardContent className="space-y-4 text-sm">
                         <div className="flex items-center gap-2 text-muted-foreground">
                             <Calendar className="h-4 w-4" />
-                            <span>{new Date(service.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                            <span>{serviceDate.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
                         </div>
                          <div className="flex items-center gap-2 text-muted-foreground">
                             <User className="h-4 w-4" />
-                            <span>Led by <span className="font-semibold text-foreground">{service.worshipLeader}</span></span>
+                            <span>Led by <span className="font-semibold text-foreground">{service.worshipLeaderName}</span></span>
                         </div>
                     </CardContent>
                 </Card>
@@ -139,4 +142,3 @@ export default function ServiceDetailPage() {
     </div>
   );
 }
-

@@ -29,15 +29,23 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Calendar } from '@/components/ui/calendar';
-import { useFirestore } from '@/firebase';
-import { addDoc, collection } from 'firebase/firestore';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { addDoc, collection, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, CalendarIcon } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { placeholderImages } from '@/lib/placeholder-images.json';
+import type { TeamMember } from '@/lib/placeholder-data';
 
 const serviceSchema = z.object({
   theme: z.string().min(1, 'Theme is required'),
@@ -45,7 +53,8 @@ const serviceSchema = z.object({
   date: z.date({
     required_error: 'A date is required.',
   }),
-  worshipLeader: z.string().min(1, 'Worship leader is required'),
+  worshipLeaderId: z.string().min(1, 'Worship leader is required'),
+  imageUrl: z.string().url().optional().or(z.literal('')),
 });
 
 type ServiceFormValues = z.infer<typeof serviceSchema>;
@@ -56,12 +65,16 @@ export default function CreateServicePage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
+  const teamMembersQuery = useMemoFirebase(() => firestore ? collection(firestore, 'team_members') : null, [firestore]);
+  const { data: teamMembers } = useCollection<TeamMember>(teamMembersQuery);
+
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceSchema),
     defaultValues: {
       theme: '',
       sermonTheme: '',
-      worshipLeader: '',
+      worshipLeaderId: '',
+      imageUrl: '',
     },
   });
 
@@ -73,20 +86,21 @@ export default function CreateServicePage() {
     setIsLoading(true);
 
     try {
+      const selectedLeader = teamMembers?.find(m => m.id === data.worshipLeaderId);
+      
       const serviceData = {
         ...data,
         date: data.date.toISOString(),
-        imageUrl: placeholderImages.find(p => p.id.startsWith('service'))?.imageUrl || 'https://picsum.photos/seed/service/600/400',
+        imageUrl: data.imageUrl || placeholderImages.find(p => p.id.startsWith('service'))?.imageUrl || 'https://picsum.photos/seed/service/600/400',
         team: [],
         setlist: [],
+        worshipLeaderName: selectedLeader?.name || 'Unknown',
       };
       
       const docRef = await addDoc(collection(firestore, 'services'), serviceData);
       
-      // Since Firestore doesn't automatically add the ID to the document data,
-      // you might want to do this in a real app, but it's not strictly necessary
-      // for this form.
-      // await updateDoc(docRef, { id: docRef.id });
+      // Add the auto-generated ID to the document
+      await updateDoc(docRef, { id: docRef.id });
 
       toast({
         title: 'Service Created',
@@ -123,8 +137,7 @@ export default function CreateServicePage() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className='space-y-4'>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
+            <FormField
                 control={form.control}
                 name="theme"
                 render={({ field }) => (
@@ -150,7 +163,6 @@ export default function CreateServicePage() {
                   </FormItem>
                 )}
               />
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <FormField
                 control={form.control}
@@ -192,18 +204,42 @@ export default function CreateServicePage() {
               />
               <FormField
                 control={form.control}
-                name="worshipLeader"
+                name="worshipLeaderId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Worship Leader</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Alex Ray" {...field} />
-                    </FormControl>
+                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a worship leader" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {teamMembers?.map(member => (
+                          <SelectItem key={member.id} value={member.id}>
+                            {member.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+             <FormField
+                control={form.control}
+                name="imageUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Banner Image URL (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://example.com/image.jpg" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
           </CardContent>
           <CardFooter>
             <Button type="submit" disabled={isLoading}>

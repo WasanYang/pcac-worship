@@ -54,16 +54,17 @@ export default function Dashboard() {
   const upcomingServices = placeholderServices
     ?.filter(service => {
         try {
-            // Handle both string dates and Firestore Timestamps
-            const serviceDate = service.date instanceof Timestamp ? service.date.toDate() : new Date(service.date);
+            const serviceDate = service.date instanceof Timestamp 
+                ? service.date.toDate() 
+                : new Date(service.date as string);
             return serviceDate > new Date();
         } catch (e) {
             return false;
         }
     })
     .sort((a, b) => {
-        const dateA = a.date instanceof Timestamp ? a.date.toDate() : new Date(a.date);
-        const dateB = b.date instanceof Timestamp ? b.date.toDate() : new Date(b.date);
+        const dateA = a.date instanceof Timestamp ? a.date.toDate() : new Date(a.date as string);
+        const dateB = b.date instanceof Timestamp ? b.date.toDate() : new Date(b.date as string);
         return dateA.getTime() - dateB.getTime();
     })
     .slice(0, 5) || [];
@@ -111,9 +112,9 @@ export default function Dashboard() {
                             <div>
                                 <h3 className='text-base md:text-lg font-bold truncate'>{service.theme}</h3>
                                 <p className='text-sm text-muted-foreground'>
-                                    {new Date(service.date instanceof Timestamp ? service.date.toDate() : service.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                    {new Date(service.date instanceof Timestamp ? service.date.toDate() : service.date as string).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                                 </p>
-                                <p className='text-sm text-muted-foreground'>Led by: {service.worshipLeader}</p>
+                                <p className='text-sm text-muted-foreground'>Led by: {service.worshipLeaderName}</p>
                             </div>
                              <Button variant="outline" size="sm" className="mt-4 self-start">View Details</Button>
                         </div>
