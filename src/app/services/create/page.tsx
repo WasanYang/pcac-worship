@@ -40,7 +40,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { addDoc, collection, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, CalendarIcon, ListMusic, Users, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, CalendarIcon, ListMusic, Users, Image as ImageIcon, Search } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -73,12 +73,22 @@ export default function CreateServicePage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [songSearch, setSongSearch] = useState('');
 
   const teamMembersQuery = useMemoFirebase(() => firestore ? collection(firestore, 'team_members') : null, [firestore]);
   const { data: teamMembers } = useCollection<TeamMember>(teamMembersQuery);
   
   const songsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'songs') : null, [firestore]);
   const { data: songs } = useCollection<Song>(songsQuery);
+
+  const filteredSongs = useMemo(() => {
+    if (!songs) return [];
+    if (!songSearch) return songs;
+    return songs.filter(song => 
+      song.title.toLowerCase().includes(songSearch.toLowerCase()) ||
+      song.author.toLowerCase().includes(songSearch.toLowerCase())
+    );
+  }, [songs, songSearch]);
 
 
   const form = useForm<ServiceFormValues>({
@@ -381,9 +391,18 @@ export default function CreateServicePage() {
                                 })}
                             </div>
                         )}
+                        <div className="relative mb-4">
+                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                                placeholder="Search songs by title or author..."
+                                className="pl-8"
+                                value={songSearch}
+                                onChange={(e) => setSongSearch(e.target.value)}
+                            />
+                        </div>
                         <ScrollArea className="h-60 w-full rounded-md border">
                             <div className="p-4 space-y-4">
-                            {songs?.map((song) => (
+                            {filteredSongs.length > 0 ? filteredSongs.map((song) => (
                                 <FormField
                                 key={song.id}
                                 control={form.control}
@@ -414,7 +433,9 @@ export default function CreateServicePage() {
                                     );
                                 }}
                                 />
-                            ))}
+                            )) : (
+                                <p className="text-center text-sm text-muted-foreground py-4">No songs found.</p>
+                            )}
                             </div>
                         </ScrollArea>
                         <FormMessage />
@@ -433,5 +454,7 @@ export default function CreateServicePage() {
     </div>
   );
 }
+
+    
 
     
