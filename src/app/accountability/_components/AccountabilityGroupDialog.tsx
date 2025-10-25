@@ -35,6 +35,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { TeamMember, AccountabilityGroup } from '@/lib/placeholder-data';
+import { Badge } from '@/components/ui/badge';
 
 const groupSchema = z.object({
   name: z.string().min(1, 'Group name is required.'),
@@ -146,7 +147,9 @@ export function AccountabilityGroupDialog({
                   <FormLabel>Members</FormLabel>
                    <ScrollArea className="h-48 w-full rounded-md border">
                     <div className="p-4 space-y-4">
-                      {teamMembers.map((member) => (
+                      {teamMembers.map((member) => {
+                        const roles = Array.isArray(member.role) ? member.role : [member.role];
+                        return (
                         <FormField
                           key={member.id}
                           control={form.control}
@@ -174,13 +177,20 @@ export function AccountabilityGroupDialog({
                                         <AvatarImage src={member.avatarUrl} alt={member.name}/>
                                         <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                     </Avatar>
-                                    <FormLabel className="font-normal">{member.name}</FormLabel>
+                                    <div className='flex flex-col'>
+                                        <FormLabel className="font-normal">{member.name}</FormLabel>
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                            {roles.map(role => (
+                                                <Badge key={role} variant="outline" className="text-xs font-normal">{role}</Badge>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                               </FormItem>
                             );
                           }}
                         />
-                      ))}
+                      )})}
                     </div>
                   </ScrollArea>
                   <FormMessage />
