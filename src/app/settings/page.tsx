@@ -136,28 +136,49 @@ export default function SettingsPage() {
 
 
   const handleProfileUpdate = async (values: ProfileFormValues) => {
-    if (!teamMemberRef || !user) return;
+    if (!teamMemberRef || !user || !teamMember) return;
     setIsLoading(true);
+
     try {
-      // Update Firestore document
-      await updateDoc(teamMemberRef, {
-        name: values.name,
-        avatarUrl: values.avatarUrl,
-        skills: values.skills,
-      });
+      const dataToUpdate: Partial<ProfileFormValues> = {};
+      const authProfileToUpdate: { displayName?: string; photoURL?: string } = {};
+
+      if (values.name !== teamMember.name) {
+        dataToUpdate.name = values.name;
+        authProfileToUpdate.displayName = values.name;
+      }
+      if (values.avatarUrl && values.avatarUrl !== teamMember.avatarUrl) {
+        dataToUpdate.avatarUrl = values.avatarUrl;
+        authProfileToUpdate.photoURL = values.avatarUrl;
+      }
+      if (JSON.stringify(values.skills) !== JSON.stringify(teamMember.skills || [])) {
+          dataToUpdate.skills = values.skills;
+      }
+
+
+      let updated = false;
+      if (Object.keys(dataToUpdate).length > 0) {
+        await updateDoc(teamMemberRef, dataToUpdate);
+        updated = true;
+      }
       
-      // Update Firebase Auth profile
-      if (auth.currentUser) {
-        await updateProfile(auth.currentUser, {
-          displayName: values.name,
-          photoURL: values.avatarUrl,
+      if (auth.currentUser && Object.keys(authProfileToUpdate).length > 0) {
+        await updateProfile(auth.currentUser, authProfileToUpdate);
+        updated = true;
+      }
+      
+      if(updated) {
+        toast({
+            title: "Profile Updated",
+            description: "Your profile has been successfully updated.",
+        });
+      } else {
+        toast({
+            title: "No Changes",
+            description: "There were no changes to save.",
         });
       }
 
-      toast({
-        title: "Profile Updated",
-        description: "Your profile has been successfully updated.",
-      });
     } catch (error) {
       console.error("Error updating profile:", error);
       toast({
