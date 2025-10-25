@@ -22,35 +22,35 @@ function AppContent({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setIsClient(true);
     const checkRedirect = async () => {
-      if (auth && firestore) {
-        try {
-          const result = await getRedirectResult(auth);
-          if (result && result.user) {
-            const firebaseUser = result.user;
-            // This logic is now duplicated from the provider, which is not ideal, but necessary
-            // to ensure the user document is created on the very first sign-in via redirect.
-            const userDocRef = doc(firestore, 'team_members', firebaseUser.uid);
-            const userDocSnap = await getDoc(userDocRef);
-            if (!userDocSnap.exists()) {
-              await setDoc(userDocRef, {
-                id: firebaseUser.uid,
-                userId: firebaseUser.uid,
-                name: firebaseUser.displayName || 'New User',
-                email: firebaseUser.email,
-                role: 'Team Member',
-                avatarUrl:
-                  firebaseUser.photoURL ||
-                  `https://picsum.photos/seed/${firebaseUser.uid}/100/100`,
-              });
-            }
-          }
-        } catch (error) {
-          console.error('Error handling redirect result:', error);
-        } finally {
-            setIsRedirectLoading(false);
-        }
-      } else {
+      if (!auth || !firestore) {
         setIsRedirectLoading(false);
+        return;
+      }
+      try {
+        const result = await getRedirectResult(auth);
+        if (result && result.user) {
+          const firebaseUser = result.user;
+          // This logic is now duplicated from the provider, which is not ideal, but necessary
+          // to ensure the user document is created on the very first sign-in via redirect.
+          const userDocRef = doc(firestore, 'team_members', firebaseUser.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (!userDocSnap.exists()) {
+            await setDoc(userDocRef, {
+              id: firebaseUser.uid,
+              userId: firebaseUser.uid,
+              name: firebaseUser.displayName || 'New User',
+              email: firebaseUser.email,
+              role: 'Team Member',
+              avatarUrl:
+                firebaseUser.photoURL ||
+                `https://picsum.photos/seed/${firebaseUser.uid}/100/100`,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error handling redirect result:', error);
+      } finally {
+          setIsRedirectLoading(false);
       }
     };
 
