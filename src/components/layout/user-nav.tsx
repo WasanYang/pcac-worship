@@ -7,8 +7,13 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useI18n } from "@/providers/i18n-provider";
 import { Languages, LogOut, Settings, User as UserIcon, Shield, ChevronRight, ListMusic } from "lucide-react";
@@ -21,7 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "../ui/separator";
 
 export function UserNav() {
-  const { setLocale, t } = useI18n();
+  const { locale, setLocale, t } = useI18n();
   const { user } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
@@ -129,13 +134,25 @@ export function UserNav() {
                 <div className="p-2 rounded-md text-sm">
                     <ThemeToggle />
                 </div>
-                <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent text-sm cursor-pointer">
-                    <div className="flex items-center gap-3">
-                        <Languages className="h-4 w-4" />
-                        <span>{t('language')}</span>
-                    </div>
-                    <span className="text-muted-foreground text-xs">English</span>
-                </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="w-full justify-between p-2 text-sm font-normal">
+                             <div className="flex items-center gap-3">
+                                <Languages className="h-4 w-4" />
+                                <span>{t('language')}</span>
+                            </div>
+                            <span className="text-muted-foreground text-xs">{locale === 'en' ? 'English' : 'ไทย'}</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setLocale('en')}>
+                            English
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setLocale('th')}>
+                            ไทย
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
              </div>
 
 
