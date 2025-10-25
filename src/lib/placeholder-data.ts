@@ -49,7 +49,7 @@ export type AccountabilityGroup = {
   leaderId: string;
   leaderName: string;
   memberIds: string[];
-  members: { id: string; name: string; contactStatus: 'Contacted' | 'Pending' | 'Missed' }[];
+  members: { id: string; contactStatus: 'Contacted' | 'Pending' | 'Missed' }[];
 };
 
 export type Schedule = {
@@ -102,6 +102,5 @@ export const upcomingServices: Service[] = [
 ];
 
 export const accountabilityGroups: AccountabilityGroup[] = [
-  { id: '1', name: "The Iron Men", leaderId: "1", leaderName: "Alex Ray", memberIds: ['2', '3'], members: [{id: '2', name: "Jordan Lee", contactStatus: 'Contacted' }, { id: '3', name: "Casey Smith", contactStatus: 'Pending' }] },
-  { id: '2', name: "Sisters in Spirit", leaderId: "4", leaderName: "Taylor Green", memberIds: ['5'], members: [{ id: '5', name: "Morgan Blue", contactStatus: 'Contacted' }] },
+    // This is now fetched from firestore
 ];
