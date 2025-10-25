@@ -32,7 +32,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Upload } from "lucide-react";
+import { Upload, X, Calendar as CalendarIcon } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { AnimatePresence, motion } from "framer-motion";
 
 const profileFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -69,7 +71,11 @@ export default function SettingsPage() {
     if (teamMember) {
       profileForm.reset({ name: teamMember.name, avatarUrl: teamMember.avatarUrl });
       if (teamMember.blockoutDates) {
-        setSelectedDates(teamMember.blockoutDates.map(d => new Date(d + 'T00:00:00')));
+        const dates = teamMember.blockoutDates.map(d => {
+            const [year, month, day] = d.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }).sort((a,b) => a.getTime() - b.getTime());
+        setSelectedDates(dates);
       }
       setImagePreview(teamMember.avatarUrl);
     }
@@ -115,10 +121,12 @@ export default function SettingsPage() {
       });
       
       // Update Firebase Auth profile
-      await updateProfile(user, {
-        displayName: values.name,
-        photoURL: values.avatarUrl,
-      });
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, {
+          displayName: values.name,
+          photoURL: values.avatarUrl,
+        });
+      }
 
       toast({
         title: "Profile Updated",
@@ -165,6 +173,20 @@ export default function SettingsPage() {
     }
   };
   
+    const handleDateSelect = (dates: Date[] | undefined) => {
+        if (!dates) {
+            setSelectedDates([]);
+            return;
+        }
+        const sortedDates = dates.sort((a,b) => a.getTime() - b.getTime());
+        setSelectedDates(sortedDates);
+    }
+
+    const removeDate = (dateToRemove: Date) => {
+        setSelectedDates(prev => prev?.filter(date => date.getTime() !== dateToRemove.getTime()));
+    }
+
+
   const userRoles = Array.isArray(teamMember?.role) ? teamMember.role : (teamMember?.role ? [teamMember.role] : []);
 
 
@@ -299,24 +321,48 @@ export default function SettingsPage() {
                         {t('blockoutDatesDesc')}
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="flex flex-col items-center gap-4">
-                    <Calendar
-                        mode="multiple"
-                        selected={selectedDates}
-                        onSelect={setSelectedDates}
-                        className="rounded-md border"
-                        disabled={isTeamMemberLoading}
-                    />
-                    {selectedDates && selectedDates.length > 0 && (
-                        <div className="w-full max-w-md rounded-lg border p-4">
-                            <h4 className="font-semibold mb-2">Your selected blockout dates:</h4>
-                            <ul className="list-disc pl-5 text-sm">
-                                {selectedDates.map(date => (
-                                    <li key={date.toString()}>{date.toLocaleDateString()}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                    <div className="flex justify-center">
+                        <Calendar
+                            mode="multiple"
+                            selected={selectedDates}
+                            onSelect={handleDateSelect}
+                            className="rounded-md border"
+                            disabled={isTeamMemberLoading}
+                        />
+                    </div>
+                    <div className="space-y-4">
+                        <h4 className="font-semibold text-lg border-b pb-2">Selected Dates</h4>
+                        <ScrollArea className="h-64 pr-4">
+                            <div className="flex flex-col gap-2">
+                                <AnimatePresence>
+                                {selectedDates && selectedDates.length > 0 ? (
+                                    selectedDates.map(date => (
+                                        <motion.div
+                                            key={date.toString()}
+                                            layout
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
+                                        >
+                                            <Badge variant="secondary" className="flex items-center justify-between w-full text-sm py-2 px-3">
+                                                <span>{date.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                                <button onClick={() => removeDate(date)} className="ml-2 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                                    <X className="h-3 w-3"/>
+                                                </button>
+                                            </Badge>
+                                        </motion.div>
+                                    ))
+                                ) : (
+                                    <div className="text-center text-muted-foreground py-10 px-4">
+                                        <CalendarIcon className="mx-auto h-10 w-10 mb-2"/>
+                                        <p>Click on the calendar to add blockout dates.</p>
+                                    </div>
+                                )}
+                                </AnimatePresence>
+                            </div>
+                        </ScrollArea>
+                    </div>
                 </CardContent>
                  <CardFooter className="justify-end">
                     <Button onClick={handleSaveBlockoutDates} disabled={isSavingBlockout || isTeamMemberLoading}>
