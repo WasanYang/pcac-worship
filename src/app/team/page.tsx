@@ -55,14 +55,16 @@ export default function TeamPage() {
               </CardHeader>
               <CardContent>
                 <CardTitle className="text-lg">{member.name}</CardTitle>
-                 <div className='flex flex-wrap justify-center gap-1 mt-2'>
-                    {(Array.isArray(member.role) ? member.role : [member.role]).map(
-                        (role) => (
-                          <Badge key={role} variant='secondary' className="text-xs">
-                            {role}
-                          </Badge>
-                        )
-                      )}
+                 <div className='mt-2 line-clamp-2 max-h-12 overflow-hidden'>
+                    <div className='flex flex-wrap justify-center gap-1'>
+                        {(Array.isArray(member.role) ? member.role : [member.role]).map(
+                            (role) => (
+                              <Badge key={role} variant='secondary' className="text-xs">
+                                {role}
+                              </Badge>
+                            )
+                          )}
+                    </div>
                 </div>
               </CardContent>
             </Card>
