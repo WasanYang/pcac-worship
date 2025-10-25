@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import {
   Card,
@@ -52,33 +53,53 @@ export default function Dashboard() {
   );
   const { data: teamMember } = useDoc<TeamMember>(teamMemberRef);
 
-  const schedulesQuery = useMemoFirebase(
-    () =>
-      user
-        ? query(
-            collection(firestore, 'schedules'),
-            where('teamMemberId', '==', user.uid)
-          )
-        : null,
-    [firestore, user]
-  );
-  const { data: schedules } = useCollection<Schedule>(schedulesQuery);
-
-  const serviceIds = schedules?.map((s) => s.serviceId) || [];
-
-  const servicesQuery = useMemoFirebase(() => {
-    if (!firestore || serviceIds.length === 0) return null;
+  const servicesAsLeaderQuery = useMemoFirebase(() => {
+    if (!user) return null;
     const now = new Date();
-    // Firestore 'in' queries are limited to 30 items.
-    // If you expect more, you'll need to handle batching.
     return query(
       collection(firestore, 'services'),
-      where('id', 'in', serviceIds.slice(0, 30)),
+      where('worshipLeaderId', '==', user.uid),
       where('date', '>=', now.toISOString()),
       limit(5)
     );
-  }, [firestore, serviceIds]);
-  const { data: upcomingServices } = useCollection<Service>(servicesQuery);
+  }, [firestore, user]);
+
+  const servicesAsTeamMemberQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    const now = new Date();
+    return query(
+      collection(firestore, 'services'),
+      // where('team', 'array-contains', user.uid),
+      where('date', '>=', now.toISOString()),
+      limit(5)
+    );
+  }, [firestore, user]);
+
+  const { data: servicesAsLeader } = useCollection<Service>(
+    servicesAsLeaderQuery
+  );
+  const { data: servicesAsTeamMember } = useCollection<Service>(
+    servicesAsTeamMemberQuery
+  );
+
+  const [upcomingServices, setUpcomingServices] = useState<Service[]>();
+
+  useEffect(() => {
+    if (servicesAsLeader === undefined || servicesAsTeamMember === undefined) {
+      setUpcomingServices(undefined); // Still loading
+      return;
+    }
+    const combined = new Map<string, Service>();
+    [...(servicesAsLeader || []), ...(servicesAsTeamMember || [])].forEach(
+      (service) => {
+        combined.set(service.id, service);
+      }
+    );
+    const sorted = Array.from(combined.values()).sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    setUpcomingServices(sorted);
+  }, [servicesAsLeader, servicesAsTeamMember]);
 
   const accountabilityGroupsQuery = useMemoFirebase(
     () =>
@@ -124,7 +145,20 @@ export default function Dashboard() {
               <Calendar className='h-6 w-6' />
               My Upcoming Services
             </h2>
-            {upcomingServices && upcomingServices.length > 0 ? (
+            {upcomingServices === undefined ? (
+              <div className='space-y-4'>
+                {[...Array(2)].map((_, i) => (
+                  <Card key={i} className='flex flex-col md:flex-row'>
+                    <div className='relative w-full h-40 md:w-48 md:h-auto flex-shrink-0 bg-muted animate-pulse'></div>
+                    <div className='p-4 flex flex-col justify-between flex-grow space-y-2'>
+                      <div className='h-5 bg-muted rounded w-3/4 animate-pulse'></div>
+                      <div className='h-4 bg-muted rounded w-1/2 animate-pulse'></div>
+                      <div className='h-4 bg-muted rounded w-1/3 animate-pulse'></div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : upcomingServices.length > 0 ? (
               <div className='space-y-4'>
                 {upcomingServices.map((service) => (
                   <Card
