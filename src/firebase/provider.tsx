@@ -90,10 +90,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               await setDoc(userDocRef, {
                 id: firebaseUser.uid,
                 userId: firebaseUser.uid,
-                name: firebaseUser.displayName || 'New User',
+                name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'New User',
                 email: firebaseUser.email,
-                role: 'Team Member', // Default role
-                avatarUrl: firebaseUser.photoURL || `https://picsum.photos/seed/${firebaseUser.uid}/100/100`
+                role: ['Team Member'], // Default role as an array
+                avatarUrl: firebaseUser.photoURL || `https://picsum.photos/seed/${firebaseUser.uid}/100/100`,
+                skills: [],
+                mentoringNotes: [],
               });
             } catch (error) {
               console.error("FirebaseProvider: Error creating user document:", error);

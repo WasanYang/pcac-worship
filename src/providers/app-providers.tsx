@@ -9,44 +9,25 @@ import { FirebaseClientProvider, useUser, useAuth } from '@/firebase';
 import LoginPage from '@/app/login/page';
 import { useEffect, useState } from 'react';
 import { getRedirectResult } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
-  const firestore = useFirestore();
   const [isClient, setIsClient] = useState(false);
   const [isRedirectLoading, setIsRedirectLoading] = useState(true);
 
   useEffect(() => {
     setIsClient(true);
     const checkRedirect = async () => {
-      if (!auth || !firestore) {
+      if (!auth) {
         setIsRedirectLoading(false);
         return;
       }
       try {
-        const result = await getRedirectResult(auth);
-        if (result && result.user) {
-          const firebaseUser = result.user;
-          // This logic is now duplicated from the provider, which is not ideal, but necessary
-          // to ensure the user document is created on the very first sign-in via redirect.
-          const userDocRef = doc(firestore, 'team_members', firebaseUser.uid);
-          const userDocSnap = await getDoc(userDocRef);
-          if (!userDocSnap.exists()) {
-            await setDoc(userDocRef, {
-              id: firebaseUser.uid,
-              userId: firebaseUser.uid,
-              name: firebaseUser.displayName || 'New User',
-              email: firebaseUser.email,
-              role: 'Team Member',
-              avatarUrl:
-                firebaseUser.photoURL ||
-                `https://picsum.photos/seed/${firebaseUser.uid}/100/100`,
-            });
-          }
-        }
+        // This will complete the sign-in process after a redirect.
+        // The onAuthStateChanged listener in FirebaseProvider will then handle
+        // creating the user document if it's their first time.
+        await getRedirectResult(auth);
       } catch (error) {
         console.error('Error handling redirect result:', error);
       } finally {
@@ -55,7 +36,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
     };
 
     checkRedirect();
-  }, [auth, firestore]);
+  }, [auth]);
 
   if (isUserLoading || isRedirectLoading || !isClient) {
     return (
