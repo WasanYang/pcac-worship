@@ -1,10 +1,12 @@
 
 "use client";
 
+import * as React from "react";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -19,7 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { recentSongs } from "@/lib/placeholder-data";
-import { PlusCircle, File, ListFilter } from "lucide-react";
+import { ListFilter, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -28,10 +30,41 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useI18n } from "@/providers/i18n-provider";
 
 export default function SongsPage() {
   const { t } = useI18n();
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+
+  const totalPages = Math.ceil(recentSongs.length / rowsPerPage);
+
+  const paginatedSongs = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    return recentSongs.slice(startIndex, endIndex);
+  }, [currentPage, rowsPerPage]);
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const handleRowsPerPageChange = (value: string) => {
+    setRowsPerPage(Number(value));
+    setCurrentPage(1); // Reset to first page
+  };
+
 
   return (
     <Card>
@@ -79,7 +112,7 @@ export default function SongsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {recentSongs.map((song) => (
+            {paginatedSongs.map((song) => (
               <TableRow key={song.id}>
                 <TableCell>
                   <div className="font-medium">{song.title}</div>
@@ -106,6 +139,61 @@ export default function SongsPage() {
           </TableBody>
         </Table>
       </CardContent>
+      <CardFooter className="flex items-center justify-between">
+         <div className="text-xs text-muted-foreground">
+            Showing{" "}
+            <strong>
+              {Math.min((currentPage - 1) * rowsPerPage + 1, recentSongs.length)}-
+              {Math.min(currentPage * rowsPerPage, recentSongs.length)}
+            </strong>{" "}
+            of <strong>{recentSongs.length}</strong> songs
+        </div>
+        <div className="flex items-center gap-4">
+           <div className="flex items-center gap-2">
+            <p className="text-xs font-medium">Rows per page</p>
+            <Select
+              value={`${rowsPerPage}`}
+              onValueChange={handleRowsPerPageChange}
+            >
+              <SelectTrigger className="h-8 w-[70px]">
+                <SelectValue placeholder={`${rowsPerPage}`} />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {[5, 10, 15, 20].map((pageSize) => (
+                  <SelectItem key={pageSize} value={`${pageSize}`}>
+                    {pageSize}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="text-xs font-semibold">
+            Page {currentPage} of {totalPages}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+            >
+              <span className="sr-only">Go to previous page</span>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+            >
+              <span className="sr-only">Go to next page</span>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardFooter>
     </Card>
   );
 }
