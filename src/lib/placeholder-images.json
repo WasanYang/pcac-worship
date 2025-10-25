@@ -3,61 +3,73 @@
     {
       "id": "user1",
       "description": "Avatar for Alex Ray",
-      "imageUrl": "https://picsum.photos/seed/11/100/100",
+      "imageUrl": "https://images.unsplash.com/photo-1600180758890-6b94519a8ba6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjEzMjQyNDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
     },
     {
       "id": "user2",
       "description": "Avatar for Jordan Lee",
-      "imageUrl": "https://picsum.photos/seed/12/100/100",
+      "imageUrl": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjEzMjQyNDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
     },
     {
       "id": "user3",
       "description": "Avatar for Casey Smith",
-      "imageUrl": "https://picsum.photos/seed/13/100/100",
+      "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjEzMjQyNDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
     },
     {
       "id": "user4",
       "description": "Avatar for Taylor Green",
-      "imageUrl": "https://picsum.photos/seed/14/100/100",
+      "imageUrl": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjEzMjQyNDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
     },
     {
       "id": "user5",
       "description": "Avatar for Morgan Blue",
-      "imageUrl": "https://picsum.photos/seed/15/100/100",
+      "imageUrl": "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjEzMjQyNDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
     },
     {
       "id": "service1",
       "description": "Image for Sunday Morning Worship",
-      "imageUrl": "https://picsum.photos/seed/21/300/300",
+      "imageUrl": "https://images.unsplash.com/photo-1529070538774-1843cb3265df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3b3JzaGlwJTIwc2VydmljZXxlbnwwfHx8fDE3NjEzMjkxNDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "worship service"
     },
     {
       "id": "service2",
       "description": "Image for Youth Night",
-      "imageUrl": "https://picsum.photos/seed/22/300/300",
+      "imageUrl": "https://images.unsplash.com/photo-1594913495702-0872744c6968?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx5b3V0aCUyMGdyb3VwfGVufDB8fHx8MTc2MTI3NzcwM3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "youth group"
     },
     {
       "id": "service3",
       "description": "Image for Sunday Morning Worship",
-      "imageUrl": "https://picsum.photos/seed/23/300/300",
+      "imageUrl": "https://images.unsplash.com/photo-1610414302552-c002f989c663?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjaHVyY2glMjBwcmFpc2V8ZW58MHx8fHwxNzYxMzYxNTA1fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "church praise"
     },
     {
       "id": "service4",
       "description": "Image for Mid-week Prayer",
-      "imageUrl": "https://picsum.photos/seed/24/300/300",
+      "imageUrl": "https://images.unsplash.com/photo-1520857014576-2c4f4c972b57?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwcmF5ZXIlMjBtZWV0aW5nfGVufDB8fHx8MTc2MTM2MTUwNXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "prayer meeting"
+    },
+    {
+      "id": "service5",
+      "description": "Image for Good Friday Special",
+      "imageUrl": "https://images.unsplash.com/photo-1646281579942-ef27ddbf729f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjcm9zcyUyMGNocmlzdGlhbnxlbnwwfHx8fDE3NjEzNjE1MDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cross christian"
+    },
+    {
+      "id": "service6",
+      "description": "Image for Easter Sunday Celebration",
+      "imageUrl": "https://images.unsplash.com/photo-1654851788464-b99cb0ff6603?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzdW5yaXNlJTIwY2h1cmNofGVufDB8fHx8MTc2MTM2MTUwNXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sunrise church"
     },
     {
       "id": "homeBanner",
       "description": "Banner for home page",
-      "imageUrl": "https://picsum.photos/seed/30/1200/400",
+      "imageUrl": "https://images.unsplash.com/photo-1615754549373-6cac9ce89cb5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx3b3JzaGlwJTIwYmFuZHxlbnwwfHx8fDE3NjEzNjE1MDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "worship band"
     }
   ]

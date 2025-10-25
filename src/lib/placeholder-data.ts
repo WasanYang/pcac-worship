@@ -78,6 +78,8 @@ export const upcomingServices: Service[] = [
   { id: '2', theme: "Youth Night", sermonTheme: "Fearless Generation", date: "May 31, 2024", worshipLeader: "Taylor Green", imageUrl: placeholderImages.find(p => p.id === 'service2')?.imageUrl || '', team: [], setlist: [] },
   { id: '3', theme: "Sunday Morning Worship", sermonTheme: "Foundations of Faith", date: "June 2, 2024", worshipLeader: "Alex Ray", imageUrl: placeholderImages.find(p => p.id === 'service3')?.imageUrl || '', team: [], setlist: [] },
   { id: '4', theme: "Mid-week Prayer", sermonTheme: "The Power of Prayer", date: "June 5, 2024", worshipLeader: "Jordan Lee", imageUrl: placeholderImages.find(p => p.id === 'service4')?.imageUrl || '', team: [], setlist: [] },
+  { id: '5', theme: "Good Friday Special", sermonTheme: "It is Finished", date: "June 7, 2024", worshipLeader: "Alex Ray", imageUrl: placeholderImages.find(p => p.id === 'service5')?.imageUrl || '', team: [], setlist: [] },
+  { id: '6', theme: "Easter Sunday Celebration", sermonTheme: "He is Risen", date: "June 9, 2024", worshipLeader: "Taylor Green", imageUrl: placeholderImages.find(p => p.id === 'service6')?.imageUrl || '', team: [], setlist: [] },
 ];
 
 export const accountabilityGroups: AccountabilityGroup[] = [
