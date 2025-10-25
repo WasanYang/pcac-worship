@@ -35,7 +35,7 @@ export default function TeamPage() {
         </div>
       </div>
 
-      <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
+      <div className='grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4'>
         {allUsers?.map((member) => (
           <Card key={member.id} className='text-center'>
             <CardHeader>
@@ -55,7 +55,7 @@ export default function TeamPage() {
             </CardHeader>
             <CardContent>
               <CardTitle>{member.name}</CardTitle>
-              <CardDescription>{member.role}</CardDescription>
+              <CardDescription>{(Array.isArray(member.role) ? member.role.join(', ') : member.role)}</CardDescription>
             </CardContent>
             <CardFooter className='flex justify-center gap-2'>
               <Button variant='outline' size='sm'>
