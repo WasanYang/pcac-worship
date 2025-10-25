@@ -4,7 +4,13 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SidebarProvider, Sidebar } from '@/components/ui/sidebar';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { SidebarNav, navItems } from '@/components/layout/sidebar-nav';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -39,19 +45,26 @@ export default function MainLayout({
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen w-full">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
-          <div className="w-full flex-1 lg:hidden">
-            <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
-                <Music className="h-6 w-6" />
-                <span>{t('prasiri')}</span>
+      <div className='min-h-screen w-full'>
+        <header className='sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6'>
+          <UserNav />
+          <div className='lg:hidden'>
+            <Link
+              href='/'
+              className='flex items-center gap-2 font-semibold text-lg'
+            >
+              <Music className='h-6 w-6' />
+              <span className='sr-only'>{t('prasiri')}</span>
             </Link>
           </div>
-          <UserNav />
+          <div className='w-8 lg:hidden' />
         </header>
         <div className='lg:flex'>
-          <Sidebar side='left' className='hidden lg:block flex-shrink-0 w-64 border-r'>
-              <SidebarNav />
+          <Sidebar
+            side='left'
+            className='hidden lg:block flex-shrink-0 w-64 border-r'
+          >
+            <SidebarNav />
           </Sidebar>
 
           <div className='flex flex-col flex-1'>
@@ -63,20 +76,20 @@ export default function MainLayout({
             >
               {bannerImage && (
                 <div className='relative w-full h-48 lg:h-64 rounded-lg overflow-hidden'>
-                    <Image
+                  <Image
                     src={bannerImage.imageUrl}
                     alt='Prasiri Worship Team Banner'
                     fill
                     className='object-cover'
                     data-ai-hint={bannerImage.imageHint}
-                    />
-                    <div className='absolute inset-0 bg-black/50' />
-                     <div className='absolute inset-0 flex items-center justify-center'>
-                        <div className='text-center text-white'>
-                        <h1 className='text-4xl font-bold'>{getPageTitle()}</h1>
-                        <p className='text-lg'>Worship Team Management</p>
-                        </div>
+                  />
+                  <div className='absolute inset-0 bg-black/50' />
+                  <div className='absolute inset-0 flex items-center justify-center'>
+                    <div className='text-center text-white'>
+                      <h1 className='text-4xl font-bold'>{getPageTitle()}</h1>
+                      <p className='text-lg'>Worship Team Management</p>
                     </div>
+                  </div>
                 </div>
               )}
               <div className='flex-1'>{children}</div>
