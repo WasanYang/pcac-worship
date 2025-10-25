@@ -3,17 +3,16 @@
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { TeamMember, teamMembers } from '@/lib/placeholder-data';
+import type { TeamMember } from '@/lib/placeholder-data';
 import { useI18n } from '@/providers/i18n-provider';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
+import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 
 export default function TeamPage() {
   const { t } = useI18n();
@@ -35,37 +34,39 @@ export default function TeamPage() {
         </div>
       </div>
 
-      <div className='grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4'>
+      <div className='grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4'>
         {allUsers?.map((member) => (
-          <Card key={member.id} className='text-center'>
-            <CardHeader>
-              <Avatar className='mx-auto h-20 w-20'>
-                <AvatarImage
-                  src={member.avatarUrl}
-                  alt={member.name}
-                  data-ai-hint='person portrait'
-                />
-                <AvatarFallback>
-                  {member.name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')}
-                </AvatarFallback>
-              </Avatar>
-            </CardHeader>
-            <CardContent>
-              <CardTitle>{member.name}</CardTitle>
-              <CardDescription>{(Array.isArray(member.role) ? member.role.join(', ') : member.role)}</CardDescription>
-            </CardContent>
-            <CardFooter className='flex justify-center gap-2'>
-              <Button variant='outline' size='sm'>
-                {t('profile')}
-              </Button>
-              <Button variant='secondary' size='sm'>
-                {t('skills')}
-              </Button>
-            </CardFooter>
-          </Card>
+          <Link href={`/team/${member.id}`} key={member.id}>
+            <Card  className='text-center h-full hover:bg-muted/50 transition-colors'>
+              <CardHeader>
+                <Avatar className='mx-auto h-20 w-20'>
+                  <AvatarImage
+                    src={member.avatarUrl}
+                    alt={member.name}
+                    data-ai-hint='person portrait'
+                  />
+                  <AvatarFallback>
+                    {member.name
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')}
+                  </AvatarFallback>
+                </Avatar>
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-lg">{member.name}</CardTitle>
+                 <div className='flex flex-wrap justify-center gap-1 mt-2'>
+                    {(Array.isArray(member.role) ? member.role : [member.role]).map(
+                        (role) => (
+                          <Badge key={role} variant='secondary' className="text-xs">
+                            {role}
+                          </Badge>
+                        )
+                      )}
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
     </div>
