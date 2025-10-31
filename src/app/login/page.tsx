@@ -1,211 +1,116 @@
+
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
+import { AnimatePresence, motion } from 'framer-motion';
+import { placeholderImages } from '@/lib/placeholder-images.json';
+import { Music, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { useAuth } from '@/firebase';
-import { signInWithEmail, signInWithGoogle } from '@/firebase/auth';
-import { useI18n } from '@/providers/i18n-provider';
-import { useToast } from '@/hooks/use-toast';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { FirebaseError } from 'firebase/app';
-import { Eye, EyeOff } from 'lucide-react';
-import { FaGoogle } from 'react-icons/fa';
+import { SignInForm } from './_components/SignInForm';
+import { SignUpForm } from './_components/SignUpForm';
 
-const formSchema = z.object({
-  email: z.string().email({ message: 'Invalid email address.' }),
-  password: z
-    .string()
-    .min(6, { message: 'Password must be at least 6 characters.' }),
-});
+type View = 'initial' | 'signIn' | 'signUp';
+
+const backgroundImageUrl = placeholderImages.find(p => p.id === 'service2')?.imageUrl || '/placeholder.jpg';
 
 export default function LoginPage() {
-  const { t } = useI18n();
-  const auth = useAuth();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [view, setView] = useState<View>('initial');
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-  });
+  const handleBack = () => setView('initial');
 
-  const handleEmailAuth = async (values: z.infer<typeof formSchema>) => {
-    if (!auth) {
-      console.error('Auth service is not available.');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      await signInWithEmail(auth, values.email, values.password);
-      // On success, the AppProvider will redirect to the main app
-    } catch (error) {
-      console.error('Email Auth Error:', error);
-      let description = 'An unexpected error occurred.';
-      if (error instanceof FirebaseError) {
-        switch (error.code) {
-          case 'auth/user-not-found':
-          case 'auth/wrong-password':
-          case 'auth/invalid-credential':
-            description = 'Invalid email or password.';
-            break;
-          case 'auth/email-already-in-use':
-            description = 'An account with this email already exists.';
-            break;
-          default:
-            description = error.message;
-        }
-      }
-      toast({
-        variant: 'destructive',
-        title: 'Authentication Failed',
-        description,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleAuth = async () => {
-    if (!auth) {
-      console.error('Auth service is not available.');
-      return;
-    }
-    setIsGoogleLoading(true);
-    try {
-      await signInWithGoogle(auth);
-      // After redirect, AppProvider will handle user creation
-    } catch (error) {
-      console.error('Google Auth Error:', error);
-      let description = 'An unexpected error occurred.';
-      if (error instanceof FirebaseError) {
-        description = error.message;
-      }
-      toast({
-        variant: 'destructive',
-        title: 'Google Sign-In Failed',
-        description,
-      });
-      setIsGoogleLoading(false);
-    }
+  const formVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 },
   };
 
   return (
-    <div className='flex min-h-screen items-center justify-center bg-background p-4'>
-      <Card className='w-full max-w-md'>
-        <CardHeader className='text-center'>
-          <CardTitle className='text-2xl font-bold'>Worship Flow</CardTitle>
-          <CardDescription>Sign in to manage your worship team</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(handleEmailAuth)}
-              className='space-y-4'
+    <div className='relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-background'>
+      <Image
+        src={backgroundImageUrl}
+        alt='Worship service'
+        fill
+        className='object-cover'
+        data-ai-hint='worship service'
+      />
+      <div className='absolute inset-0 bg-black/60' />
+      <div className='relative z-10 flex w-full max-w-md flex-col items-center p-4 text-center text-white'>
+        
+        {view !== 'initial' && (
+           <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleBack} 
+                className="absolute top-4 left-4 text-white hover:bg-white/10 hover:text-white"
             >
-              <FormField
-                control={form.control}
-                name='email'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder='m@example.com' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='password'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <div className='relative'>
-                        <Input
-                          type={showPassword ? 'text' : 'password'}
-                          {...field}
-                        />
-                        <button
-                          type='button'
-                          onClick={() => setShowPassword(!showPassword)}
-                          className='absolute inset-y-0 right-0 flex items-center pr-3'
-                        >
-                          {showPassword ? (
-                            <EyeOff className='h-4 w-4 text-gray-500' />
-                          ) : (
-                            <Eye className='h-4 w-4 text-gray-500' />
-                          )}
-                        </button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                type='submit'
-                className='w-full'
-                disabled={isLoading || isGoogleLoading}
-              >
-                {isLoading ? 'Loading...' : 'Sign In'}
-              </Button>
-            </form>
-          </Form>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+            </Button>
+        )}
 
-          <div className='relative my-6'>
-            <div className='absolute inset-0 flex items-center'>
-              <span className='w-full border-t' />
-            </div>
-            <div className='relative flex justify-center text-xs uppercase'>
-              <span className='bg-background px-2 text-muted-foreground'>
-                Or continue with
-              </span>
-            </div>
-          </div>
+        <AnimatePresence mode="wait">
+          {view === 'initial' && (
+            <motion.div
+              key='initial'
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.3 }}
+              className='flex w-full flex-col items-center'
+            >
+              <Music className='h-16 w-16 mb-4' />
+              <h1 className='text-4xl md:text-5xl font-bold'>Worship Flow</h1>
+              <p className='mt-2 text-lg text-white/80'>Streamline your worship team management.</p>
+              <div className='mt-10 flex w-full flex-col gap-4'>
+                <Button 
+                  size='lg' 
+                  onClick={() => setView('signIn')} 
+                  className="bg-primary/80 hover:bg-primary text-primary-foreground text-lg py-6"
+                >
+                  Sign In
+                </Button>
+                <Button 
+                  size='lg' 
+                  variant='outline' 
+                  onClick={() => setView('signUp')}
+                  className="bg-transparent border-white/80 hover:bg-white/10 text-white text-lg py-6"
+                >
+                  Sign Up
+                </Button>
+              </div>
+            </motion.div>
+          )}
 
-          <Button
-            variant='outline'
-            className='w-full'
-            onClick={handleGoogleAuth}
-            disabled={isLoading || isGoogleLoading}
-          >
-            {isGoogleLoading ? (
-              'Redirecting...'
-            ) : (
-              <>
-                <FaGoogle className='mr-2 h-4 w-4' />
-                Sign in with Google
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
+          {view === 'signIn' && (
+            <motion.div
+              key='signIn'
+              variants={formVariants}
+              initial='hidden'
+              animate='visible'
+              exit='exit'
+              transition={{ duration: 0.3 }}
+              className='w-full'
+            >
+              <SignInForm />
+            </motion.div>
+          )}
+
+          {view === 'signUp' && (
+            <motion.div
+              key='signUp'
+              variants={formVariants}
+              initial='hidden'
+              animate='visible'
+              exit='exit'
+              transition={{ duration: 0.3 }}
+              className='w-full'
+            >
+              <SignUpForm />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

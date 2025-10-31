@@ -1,0 +1,233 @@
+
+'use client';
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useAuth } from '@/firebase';
+import { signUpWithEmail, signInWithGoogle } from '@/firebase/auth';
+import { useToast } from '@/hooks/use-toast';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { FirebaseError } from 'firebase/app';
+import { Eye, EyeOff, Music } from 'lucide-react';
+import { FaGoogle } from 'react-icons/fa';
+import { Role } from '@/lib/placeholder-data';
+
+
+const formSchema = z.object({
+  email: z.string().email({ message: 'Invalid email address.' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match.",
+  path: ["confirmPassword"],
+});
+
+
+export function SignUpForm() {
+  const auth = useAuth();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+  });
+
+  const handleEmailAuth = async (values: z.infer<typeof formSchema>) => {
+    if (!auth) {
+      console.error('Auth service is not available.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await signUpWithEmail(auth, values.email, values.password, ['Team Member'] as Role[]);
+    } catch (error) {
+      console.error('Email Auth Error:', error);
+      let description = 'An unexpected error occurred.';
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            description = 'An account with this email already exists.';
+            break;
+          case 'auth/weak-password':
+            description = 'The password is too weak. Please use at least 6 characters.';
+            break;
+          default:
+            description = error.message;
+        }
+      }
+      toast({
+        variant: 'destructive',
+        title: 'Sign Up Failed',
+        description,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    if (!auth) {
+      console.error('Auth service is not available.');
+      return;
+    }
+    setIsGoogleLoading(true);
+    try {
+      await signInWithGoogle(auth);
+    } catch (error) {
+      console.error('Google Auth Error:', error);
+      let description = 'An unexpected error occurred.';
+      if (error instanceof FirebaseError) {
+        description = error.message;
+      }
+      toast({
+        variant: 'destructive',
+        title: 'Google Sign-Up Failed',
+        description,
+      });
+      setIsGoogleLoading(false);
+    }
+  };
+
+  return (
+    <div className='w-full'>
+        <Music className='h-12 w-12 mx-auto mb-4' />
+        <h2 className='text-3xl font-bold text-center'>Create Account</h2>
+        <p className='text-center text-white/80 mb-8'>Join your team and start collaborating.</p>
+        
+        <Form {...form}>
+        <form
+            onSubmit={form.handleSubmit(handleEmailAuth)}
+            className='space-y-4'
+        >
+            <FormField
+            control={form.control}
+            name='email'
+            render={({ field }) => (
+                <FormItem className='text-left'>
+                <FormLabel className='text-white/80'>Email</FormLabel>
+                <FormControl>
+                    <Input placeholder='m@example.com' {...field} className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/20 focus-visible:ring-offset-0 focus-visible:ring-primary" />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name='password'
+            render={({ field }) => (
+                <FormItem className='text-left'>
+                <FormLabel className='text-white/80'>Password</FormLabel>
+                <FormControl>
+                    <div className='relative'>
+                    <Input
+                        type={showPassword ? 'text' : 'password'}
+                        {...field}
+                         className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/20 focus-visible:ring-offset-0 focus-visible:ring-primary"
+                    />
+                    <button
+                        type='button'
+                        onClick={() => setShowPassword(!showPassword)}
+                        className='absolute inset-y-0 right-0 flex items-center pr-3'
+                    >
+                        {showPassword ? (
+                        <EyeOff className='h-4 w-4 text-white/60' />
+                        ) : (
+                        <Eye className='h-4 w-4 text-white/60' />
+                        )}
+                    </button>
+                    </div>
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name='confirmPassword'
+            render={({ field }) => (
+                <FormItem className='text-left'>
+                <FormLabel className='text-white/80'>Confirm Password</FormLabel>
+                <FormControl>
+                    <div className='relative'>
+                    <Input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        {...field}
+                         className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/20 focus-visible:ring-offset-0 focus-visible:ring-primary"
+                    />
+                    <button
+                        type='button'
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className='absolute inset-y-0 right-0 flex items-center pr-3'
+                    >
+                        {showConfirmPassword ? (
+                        <EyeOff className='h-4 w-4 text-white/60' />
+                        ) : (
+                        <Eye className='h-4 w-4 text-white/60' />
+                        )}
+                    </button>
+                    </div>
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <Button
+            type='submit'
+            className='w-full text-lg py-6'
+            disabled={isLoading || isGoogleLoading}
+            >
+            {isLoading ? 'Creating Account...' : 'Sign Up'}
+            </Button>
+        </form>
+        </Form>
+
+        <div className='relative my-6'>
+        <div className='absolute inset-0 flex items-center'>
+            <span className='w-full border-t border-white/20' />
+        </div>
+        <div className='relative flex justify-center text-xs uppercase'>
+            <span className='bg-black/50 px-2 text-white/80'>
+            Or continue with
+            </span>
+        </div>
+        </div>
+
+        <Button
+        variant='outline'
+        className='w-full text-lg py-6 bg-transparent border-white/80 hover:bg-white/10 text-white'
+        onClick={handleGoogleAuth}
+        disabled={isLoading || isGoogleLoading}
+        >
+        {isGoogleLoading ? (
+            'Redirecting...'
+        ) : (
+            <>
+            <FaGoogle className='mr-2 h-4 w-4' />
+            Sign up with Google
+            </>
+        )}
+        </Button>
+    </div>
+  );
+}
