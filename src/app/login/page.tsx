@@ -49,8 +49,8 @@ export default function LoginPage() {
               transition={{ duration: 0.5 }}
               className='flex h-screen w-full flex-col'
             >
-                {/* Top Half */}
-                <div className='relative flex-1 flex flex-col items-center justify-center'>
+                {/* Top Half (50%) */}
+                <div className='relative h-1/2 flex flex-col items-center justify-center'>
                      <Image
                         src={backgroundImageUrl}
                         alt='Worship'
@@ -65,23 +65,25 @@ export default function LoginPage() {
                     </div>
                 </div>
 
-                {/* Bottom Half */}
-                <div className='py-8 px-4 w-full max-w-sm mx-auto flex flex-col gap-4'>
-                    <Button 
-                        size='lg' 
-                        onClick={() => setView('signIn')} 
-                        className="w-full bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80 text-lg py-6"
-                    >
-                    Sign In
-                    </Button>
-                    <Button 
-                        size='lg' 
-                        variant='outline' 
-                        onClick={() => setView('signUp')}
-                        className="w-full bg-background text-foreground border-2 border-foreground/50 hover:bg-accent hover:text-accent-foreground dark:border-white/50 text-lg py-6"
-                    >
-                    Sign Up
-                    </Button>
+                {/* Bottom Half (50%) */}
+                <div className='h-1/2 flex flex-col justify-center items-center py-8 px-4 w-full'>
+                    <div className="w-full max-w-sm flex flex-col gap-4">
+                        <Button 
+                            size='lg' 
+                            onClick={() => setView('signIn')} 
+                            className="w-full bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80 text-lg py-6"
+                        >
+                        Sign In
+                        </Button>
+                        <Button 
+                            size='lg' 
+                            variant='outline' 
+                            onClick={() => setView('signUp')}
+                            className="w-full bg-background text-foreground border-2 border-foreground/50 hover:bg-accent hover:text-accent-foreground dark:border-white/50 text-lg py-6"
+                        >
+                        Sign Up
+                        </Button>
+                    </div>
               </div>
             </motion.div>
           )}
