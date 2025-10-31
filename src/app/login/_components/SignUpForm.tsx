@@ -19,7 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { FirebaseError } from 'firebase/app';
-import { Eye, EyeOff, Music } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { FaGoogle } from 'react-icons/fa';
 import { Role } from '@/lib/placeholder-data';
 
@@ -33,8 +33,11 @@ const formSchema = z.object({
   path: ["confirmPassword"],
 });
 
+interface SignUpFormProps {
+  onGoToSignIn: () => void;
+}
 
-export function SignUpForm() {
+export function SignUpForm({ onGoToSignIn }: SignUpFormProps) {
   const auth = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -110,9 +113,8 @@ export function SignUpForm() {
 
   return (
     <div className='w-full max-w-sm'>
-        <Music className='h-12 w-12 mx-auto mb-4 text-white' />
-        <h2 className='text-3xl font-bold text-center text-white'>Create Account</h2>
-        <p className='text-center text-white/80 mb-8'>Join your team and start collaborating.</p>
+        <h2 className='text-4xl font-bold text-center text-foreground'>Create Account</h2>
+        <p className='text-center text-muted-foreground mb-8'>Join your team and start collaborating.</p>
         
         <Form {...form}>
         <form
@@ -124,9 +126,9 @@ export function SignUpForm() {
             name='email'
             render={({ field }) => (
                 <FormItem className='text-left'>
-                <FormLabel className='text-white/80'>Email</FormLabel>
+                <FormLabel className='text-foreground/80'>Email</FormLabel>
                 <FormControl>
-                    <Input placeholder='m@example.com' {...field} className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/20 focus-visible:ring-offset-0 focus-visible:ring-primary" />
+                    <Input placeholder='m@example.com' {...field} className="bg-muted/50 border-foreground/20 text-foreground placeholder:text-foreground/50 focus:bg-muted/60 focus-visible:ring-offset-0 focus-visible:ring-primary" />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
@@ -137,13 +139,13 @@ export function SignUpForm() {
             name='password'
             render={({ field }) => (
                 <FormItem className='text-left'>
-                <FormLabel className='text-white/80'>Password</FormLabel>
+                <FormLabel className='text-foreground/80'>Password</FormLabel>
                 <FormControl>
                     <div className='relative'>
                     <Input
                         type={showPassword ? 'text' : 'password'}
                         {...field}
-                         className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/20 focus-visible:ring-offset-0 focus-visible:ring-primary"
+                         className="bg-muted/50 border-foreground/20 text-foreground placeholder:text-foreground/50 focus:bg-muted/60 focus-visible:ring-offset-0 focus-visible:ring-primary"
                     />
                     <button
                         type='button'
@@ -151,9 +153,9 @@ export function SignUpForm() {
                         className='absolute inset-y-0 right-0 flex items-center pr-3'
                     >
                         {showPassword ? (
-                        <EyeOff className='h-4 w-4 text-white/60' />
+                        <EyeOff className='h-4 w-4 text-foreground/60' />
                         ) : (
-                        <Eye className='h-4 w-4 text-white/60' />
+                        <Eye className='h-4 w-4 text-foreground/60' />
                         )}
                     </button>
                     </div>
@@ -167,13 +169,13 @@ export function SignUpForm() {
             name='confirmPassword'
             render={({ field }) => (
                 <FormItem className='text-left'>
-                <FormLabel className='text-white/80'>Confirm Password</FormLabel>
+                <FormLabel className='text-foreground/80'>Confirm Password</FormLabel>
                 <FormControl>
                     <div className='relative'>
                     <Input
                         type={showConfirmPassword ? 'text' : 'password'}
                         {...field}
-                         className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/20 focus-visible:ring-offset-0 focus-visible:ring-primary"
+                         className="bg-muted/50 border-foreground/20 text-foreground placeholder:text-foreground/50 focus:bg-muted/60 focus-visible:ring-offset-0 focus-visible:ring-primary"
                     />
                     <button
                         type='button'
@@ -181,9 +183,9 @@ export function SignUpForm() {
                         className='absolute inset-y-0 right-0 flex items-center pr-3'
                     >
                         {showConfirmPassword ? (
-                        <EyeOff className='h-4 w-4 text-white/60' />
+                        <EyeOff className='h-4 w-4 text-foreground/60' />
                         ) : (
-                        <Eye className='h-4 w-4 text-white/60' />
+                        <Eye className='h-4 w-4 text-foreground/60' />
                         )}
                     </button>
                     </div>
@@ -193,41 +195,50 @@ export function SignUpForm() {
             )}
             />
             <Button
-            type='submit'
-            className='w-full text-lg py-6'
-            disabled={isLoading || isGoogleLoading}
+                type='submit'
+                className='w-full text-lg py-6 bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80 rounded-full'
+                disabled={isLoading || isGoogleLoading}
             >
-            {isLoading ? 'Creating Account...' : 'Register'}
+                {isLoading ? 'Creating Account...' : 'Register'}
             </Button>
         </form>
         </Form>
 
         <div className='relative my-6'>
-        <div className='absolute inset-0 flex items-center'>
-            <span className='w-full border-t border-white/20' />
-        </div>
-        <div className='relative flex justify-center text-xs uppercase'>
-            <span className='bg-background/80 px-2 text-white/80 backdrop-blur-sm'>
-            Or continue with
-            </span>
-        </div>
+            <div className='absolute inset-0 flex items-center'>
+                <span className='w-full border-t border-foreground/20' />
+            </div>
+            <div className='relative flex justify-center text-xs uppercase'>
+                <span className='bg-background px-2 text-muted-foreground'>
+                Or
+                </span>
+            </div>
         </div>
 
-        <Button
-        variant='outline'
-        className='w-full text-lg py-6 bg-transparent border-white/80 hover:bg-white/10 text-white'
-        onClick={handleGoogleAuth}
-        disabled={isLoading || isGoogleLoading}
-        >
-        {isGoogleLoading ? (
-            'Redirecting...'
-        ) : (
-            <>
-            <FaGoogle className='mr-2 h-4 w-4' />
-            Register with Google
-            </>
-        )}
-        </Button>
+        <div className="flex justify-center">
+            <Button
+                variant='outline'
+                className='rounded-full h-14 w-14'
+                onClick={handleGoogleAuth}
+                disabled={isLoading || isGoogleLoading}
+                aria-label="Register with Google"
+            >
+                {isGoogleLoading ? (
+                    '...'
+                ) : (
+                    <FaGoogle className='h-6 w-6' />
+                )}
+            </Button>
+        </div>
+        
+         <div className="mt-8 text-center text-sm">
+            <p className="text-muted-foreground">
+                Already have an account?{' '}
+                <button onClick={onGoToSignIn} className="font-semibold text-primary hover:underline">
+                Sign In
+                </button>
+            </p>
+        </div>
     </div>
   );
 }

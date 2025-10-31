@@ -100,7 +100,7 @@ export default function LoginPage() {
               transition={{ duration: 0.3 }}
               className='relative z-10 flex h-screen w-full items-center justify-center p-4 text-center bg-background'
             >
-              {view === 'signIn' ? <SignInForm onGoToRegister={() => setView('signUp')} /> : <SignUpForm />}
+              {view === 'signIn' ? <SignInForm onGoToRegister={() => setView('signUp')} /> : <SignUpForm onGoToSignIn={() => setView('signIn')} />}
             </motion.div>
           )}
         </AnimatePresence>
