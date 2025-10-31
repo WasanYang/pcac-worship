@@ -59,7 +59,7 @@ export default function LoginPage() {
                         data-ai-hint='worship band'
                     />
                     <div className="absolute inset-0 bg-black/40"></div>
-                    <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-background to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-t from-background to-transparent"></div>
                     <div className='z-10 text-center p-4'>
                         <Music className='h-16 w-16 mx-auto mb-4' />
                         <h1 className='text-4xl md:text-5xl font-bold'>Worship Flow</h1>
@@ -73,17 +73,17 @@ export default function LoginPage() {
                          <Button 
                             size='lg' 
                             onClick={() => setView('signIn')} 
-                            className="w-full bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80 text-lg py-6"
+                            className="w-full bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80 text-lg py-6 font-normal"
                         >
-                        Sign In
+                        Login
                         </Button>
                         <Button 
                             size='lg' 
                             variant='outline' 
                             onClick={() => setView('signUp')}
-                            className="w-full bg-background text-foreground border-2 border-foreground/50 hover:bg-accent hover:text-accent-foreground dark:border-white/50 text-lg py-6"
+                            className="w-full bg-background text-foreground border-2 border-foreground/50 hover:bg-accent hover:text-accent-foreground dark:border-white/50 text-lg py-6 font-normal"
                         >
-                        Sign Up
+                        Register
                         </Button>
                     </div>
               </div>

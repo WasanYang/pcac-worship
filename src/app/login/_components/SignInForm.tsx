@@ -101,7 +101,7 @@ export function SignInForm() {
   return (
     <div className='w-full max-w-sm'>
         <Music className='h-12 w-12 mx-auto mb-4 text-white' />
-        <h2 className='text-3xl font-bold text-center text-white'>Sign In</h2>
+        <h2 className='text-3xl font-bold text-center text-white'>Login</h2>
         <p className='text-center text-white/80 mb-8'>Welcome back! Manage your team.</p>
         
         <Form {...form}>
@@ -157,7 +157,7 @@ export function SignInForm() {
             className='w-full text-lg py-6'
             disabled={isLoading || isGoogleLoading}
             >
-            {isLoading ? 'Loading...' : 'Sign In'}
+            {isLoading ? 'Loading...' : 'Login'}
             </Button>
         </form>
         </Form>
@@ -184,7 +184,7 @@ export function SignInForm() {
         ) : (
             <>
             <FaGoogle className='mr-2 h-4 w-4' />
-            Sign in with Google
+            Login with Google
             </>
         )}
         </Button>

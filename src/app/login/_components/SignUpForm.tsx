@@ -197,7 +197,7 @@ export function SignUpForm() {
             className='w-full text-lg py-6'
             disabled={isLoading || isGoogleLoading}
             >
-            {isLoading ? 'Creating Account...' : 'Sign Up'}
+            {isLoading ? 'Creating Account...' : 'Register'}
             </Button>
         </form>
         </Form>
@@ -224,7 +224,7 @@ export function SignUpForm() {
         ) : (
             <>
             <FaGoogle className='mr-2 h-4 w-4' />
-            Sign up with Google
+            Register with Google
             </>
         )}
         </Button>
