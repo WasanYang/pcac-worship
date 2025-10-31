@@ -10,9 +10,6 @@ import {
   signInWithPopup,
 } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
-import { doc, setDoc } from 'firebase/firestore';
-import { getSdks } from '@/firebase';
-import type { Role } from '@/lib/placeholder-data';
 
 export async function signUpWithEmail(
   auth: Auth,

@@ -11,6 +11,8 @@ import { useEffect, useState } from 'react';
 import { getRedirectResult } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { FirebaseError } from 'firebase/app';
+import { store } from '@/lib/store';
+import { Provider } from 'react-redux';
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -67,20 +69,22 @@ function AppContent({ children }: { children: React.ReactNode }) {
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
-    <FirebaseClientProvider>
-      <TooltipProvider>
-        <I18nProvider>
-          <ThemeProvider
-            attribute='class'
-            defaultTheme='system'
-            enableSystem
-            disableTransitionOnChange
-          >
-            <AppContent>{children}</AppContent>
-            <Toaster />
-          </ThemeProvider>
-        </I18nProvider>
-      </TooltipProvider>
-    </FirebaseClientProvider>
+    <Provider store={store}>
+      <FirebaseClientProvider>
+        <TooltipProvider>
+          <I18nProvider>
+            <ThemeProvider
+              attribute='class'
+              defaultTheme='system'
+              enableSystem
+              disableTransitionOnChange
+            >
+              <AppContent>{children}</AppContent>
+              <Toaster />
+            </ThemeProvider>
+          </I18nProvider>
+        </TooltipProvider>
+      </FirebaseClientProvider>
+    </Provider>
   );
 }
