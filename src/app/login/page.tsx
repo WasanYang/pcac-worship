@@ -59,6 +59,7 @@ export default function LoginPage() {
                         data-ai-hint='worship band'
                     />
                     <div className="absolute inset-0 bg-black/40"></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent"></div>
                     <div className='z-10 text-center p-4'>
                         <Music className='h-16 w-16 mx-auto mb-4' />
                         <h1 className='text-4xl md:text-5xl font-bold'>Worship Flow</h1>
@@ -69,7 +70,7 @@ export default function LoginPage() {
                 {/* Bottom Half (50%) */}
                 <div className='h-1/2 flex flex-col justify-center items-center py-8 px-4 w-full'>
                     <div className="w-full max-w-sm flex flex-col gap-4">
-                        <Button 
+                         <Button 
                             size='lg' 
                             onClick={() => setView('signIn')} 
                             className="w-full bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80 text-lg py-6"
