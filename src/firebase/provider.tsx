@@ -82,25 +82,24 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       async (firebaseUser) => { // Auth state determined
         if (firebaseUser) {
           // User is signed in, check if they have a profile in Firestore
-          const userDocRef = doc(firestore, "users", firebaseUser.uid);
+          const userProfileRef = doc(firestore, 'users', firebaseUser.uid);
           const teamMemberDocRef = doc(firestore, "team_members", firebaseUser.uid);
           
           try {
-            const userDocSnap = await getDoc(userDocRef);
-            if (!userDocSnap.exists()) {
-              // User is new, create a profile for them in /users
-               await setDoc(userDocRef, {
+            const userProfileSnap = await getDoc(userProfileRef);
+
+            // Create documents only if the user profile doesn't exist.
+            // This prevents overwriting data on every login.
+            if (!userProfileSnap.exists()) {
+              const profileData = {
                 uid: firebaseUser.uid,
                 displayName: firebaseUser.displayName,
                 email: firebaseUser.email,
                 photoURL: firebaseUser.photoURL,
-              });
-            }
-
-            const teamMemberDocSnap = await getDoc(teamMemberDocRef);
-            if (!teamMemberDocSnap.exists()) {
-              // Also create the team_member profile if it doesn't exist
-              await setDoc(teamMemberDocRef, {
+              };
+              await setDoc(userProfileRef, profileData);
+              
+              const teamMemberData = {
                 id: firebaseUser.uid,
                 userId: firebaseUser.uid,
                 name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'New User',
@@ -108,8 +107,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 role: ['Team Member'], // Default role
                 avatarUrl: firebaseUser.photoURL || `https://picsum.photos/seed/${firebaseUser.uid}/100/100`,
                 skills: [],
-                mentoringNotes: [],
-              });
+                blockoutDates: [],
+              };
+              await setDoc(teamMemberDocRef, teamMemberData);
             }
           } catch (error) {
               console.error("FirebaseProvider: Error creating user documents:", error);
