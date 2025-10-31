@@ -80,7 +80,8 @@ export default function ServicesPage() {
                   {service.theme}
                 </CardTitle>
                 <CardDescription className='text-xs'>
-                  {new Date(service.date).toLocaleDateString()}
+                  {service.date &&
+                    new Date(service.date as Date).toLocaleDateString()}
                 </CardDescription>
               </CardHeader>
             </Card>
