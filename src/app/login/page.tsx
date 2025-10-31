@@ -50,18 +50,19 @@ export default function LoginPage() {
               className='flex h-screen w-full flex-col'
             >
                 {/* Top Half (50%) */}
-                <div className='relative h-1/2 flex flex-col items-center justify-center'>
+                <div className='relative h-1/2 flex flex-col items-center justify-center text-white'>
                      <Image
                         src={backgroundImageUrl}
                         alt='Worship'
                         fill
-                        className='object-cover opacity-10'
+                        className='object-cover'
                         data-ai-hint='worship band'
                     />
+                    <div className="absolute inset-0 bg-black/40"></div>
                     <div className='z-10 text-center p-4'>
-                        <Music className='h-16 w-16 mx-auto mb-4 text-primary' />
+                        <Music className='h-16 w-16 mx-auto mb-4' />
                         <h1 className='text-4xl md:text-5xl font-bold'>Worship Flow</h1>
-                        <p className='mt-2 text-lg text-muted-foreground'>Streamline your worship team management.</p>
+                        <p className='mt-2 text-lg text-white/90'>Streamline your worship team management.</p>
                     </div>
                 </div>
 
