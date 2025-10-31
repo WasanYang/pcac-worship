@@ -69,7 +69,7 @@
     {
       "id": "homeBanner",
       "description": "Banner for home page",
-      "imageUrl": "https://images.unsplash.com/photo-1615754549373-6cac9ce89cb5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx3b3JzaGlwJTIwYmFuZHxlbnwwfHx8fDE3NjEzNjE1MDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1516572882534-15a4b7875159?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx3b3JzaGlwJTIwY2h1cmNofGVufDB8fHx8MTc2MTg3OTY2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "worship band"
     }
   ]
