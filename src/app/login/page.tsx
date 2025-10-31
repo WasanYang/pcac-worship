@@ -32,7 +32,7 @@ export default function LoginPage() {
                 variant="ghost" 
                 size="icon" 
                 onClick={handleBack} 
-                className="absolute top-4 left-4 text-foreground hover:bg-accent/50 z-20"
+                className="absolute top-4 left-4 z-20"
             >
                 <ArrowLeft className="h-5 w-5" />
                 <span className="sr-only">Back</span>
@@ -100,7 +100,7 @@ export default function LoginPage() {
               transition={{ duration: 0.3 }}
               className='relative z-10 flex h-screen w-full items-center justify-center p-4 text-center bg-background'
             >
-              {view === 'signIn' ? <SignInForm /> : <SignUpForm />}
+              {view === 'signIn' ? <SignInForm onGoToRegister={() => setView('signUp')} /> : <SignUpForm />}
             </motion.div>
           )}
         </AnimatePresence>

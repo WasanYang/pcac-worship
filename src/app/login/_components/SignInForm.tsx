@@ -28,7 +28,11 @@ const formSchema = z.object({
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
 });
 
-export function SignInForm() {
+interface SignInFormProps {
+  onGoToRegister: () => void;
+}
+
+export function SignInForm({ onGoToRegister }: SignInFormProps) {
   const auth = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -180,7 +184,7 @@ export function SignInForm() {
 
         <div className="flex justify-center">
             <Button
-                variant='ghost'
+                variant='outline'
                 className='rounded-full h-14 w-14'
                 onClick={handleGoogleAuth}
                 disabled={isLoading || isGoogleLoading}
@@ -192,6 +196,15 @@ export function SignInForm() {
                     <FaGoogle className='h-6 w-6' />
                 )}
             </Button>
+        </div>
+
+         <div className="mt-8 text-center text-sm">
+            <p className="text-muted-foreground">
+                Don&apos;t have an account?{' '}
+                <button onClick={onGoToRegister} className="font-semibold text-primary hover:underline">
+                Register
+                </button>
+            </p>
         </div>
     </div>
   );
