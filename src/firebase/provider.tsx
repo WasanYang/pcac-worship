@@ -83,20 +83,23 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
         if (firebaseUser) {
           // User is signed in, check if they have a profile in Firestore
           const userDocRef = doc(firestore, "users", firebaseUser.uid);
-          const userDocSnap = await getDoc(userDocRef);
-
-          if (!userDocSnap.exists()) {
-            // User is new, create a profile for them in /users
-            try {
+          const teamMemberDocRef = doc(firestore, "team_members", firebaseUser.uid);
+          
+          try {
+            const userDocSnap = await getDoc(userDocRef);
+            if (!userDocSnap.exists()) {
+              // User is new, create a profile for them in /users
                await setDoc(userDocRef, {
                 uid: firebaseUser.uid,
                 displayName: firebaseUser.displayName,
                 email: firebaseUser.email,
                 photoURL: firebaseUser.photoURL,
               });
+            }
 
-              // Also create the team_member profile
-              const teamMemberDocRef = doc(firestore, "team_members", firebaseUser.uid);
+            const teamMemberDocSnap = await getDoc(teamMemberDocRef);
+            if (!teamMemberDocSnap.exists()) {
+              // Also create the team_member profile if it doesn't exist
               await setDoc(teamMemberDocRef, {
                 id: firebaseUser.uid,
                 userId: firebaseUser.uid,
@@ -104,15 +107,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 email: firebaseUser.email,
                 role: ['Team Member'], // Default role
                 avatarUrl: firebaseUser.photoURL || `https://picsum.photos/seed/${firebaseUser.uid}/100/100`,
-                skills: [
-                  { skill: 'Vocal', progress: 30 },
-                  { skill: 'Stage Presence', progress: 15 },
-                ],
+                skills: [],
                 mentoringNotes: [],
               });
-            } catch (error) {
-              console.error("FirebaseProvider: Error creating user documents:", error);
             }
+          } catch (error) {
+              console.error("FirebaseProvider: Error creating user documents:", error);
           }
         }
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
