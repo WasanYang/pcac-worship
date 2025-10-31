@@ -1,4 +1,3 @@
-
 'use client';
 
 import { ThemeProvider } from '@/providers/theme-provider';
@@ -63,7 +62,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
     return <LoginPage />;
   }
 
-  return <MainLayout>{children}</MainLayout>;
+  return <>{children}</>;
 }
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
