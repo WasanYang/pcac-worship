@@ -59,7 +59,7 @@ export default function LoginPage() {
                         data-ai-hint='worship band'
                     />
                     <div className="absolute inset-0 bg-black/40"></div>
-                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-background to-transparent"></div>
                     <div className='z-10 text-center p-4'>
                         <Music className='h-16 w-16 mx-auto mb-4' />
                         <h1 className='text-4xl md:text-5xl font-bold'>Worship Flow</h1>
