@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -25,7 +24,9 @@ import Link from 'next/link';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  password: z
+    .string()
+    .min(6, { message: 'Password must be at least 6 characters.' }),
 });
 
 interface SignInFormProps {
@@ -99,113 +100,122 @@ export function SignInForm({ onGoToRegister }: SignInFormProps) {
         title: 'Google Sign-In Failed',
         description,
       });
+    } finally {
       setIsGoogleLoading(false);
     }
   };
 
   return (
     <div className='w-full max-w-sm'>
-        <h2 className='text-4xl font-bold text-center text-foreground'>Welcome Back!</h2>
-        <p className='text-center text-muted-foreground mb-8'>Sign in to access your dashboard.</p>
-        
-        <Form {...form}>
+      <h2 className='text-4xl font-bold text-center text-foreground'>
+        Welcome Back!
+      </h2>
+      <p className='text-center text-muted-foreground mb-8'>
+        Sign in to access your dashboard.
+      </p>
+
+      <Form {...form}>
         <form
-            onSubmit={form.handleSubmit(handleEmailAuth)}
-            className='space-y-4'
+          onSubmit={form.handleSubmit(handleEmailAuth)}
+          className='space-y-4'
         >
-            <FormField
+          <FormField
             control={form.control}
             name='email'
             render={({ field }) => (
-                <FormItem className='text-left'>
+              <FormItem className='text-left'>
                 <FormLabel className='text-foreground/80'>Email</FormLabel>
                 <FormControl>
-                    <Input placeholder='m@example.com' {...field} className="bg-muted/50 border-foreground/20 text-foreground placeholder:text-foreground/50 focus:bg-muted/60 focus-visible:ring-offset-0 focus-visible:ring-primary" />
+                  <Input
+                    placeholder='m@example.com'
+                    {...field}
+                    className='bg-muted/50 border-foreground/20 text-foreground placeholder:text-foreground/50 focus:bg-muted/60 focus-visible:ring-offset-0 focus-visible:ring-primary'
+                  />
                 </FormControl>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
-            />
-            <FormField
+          />
+          <FormField
             control={form.control}
             name='password'
             render={({ field }) => (
-                <FormItem className='text-left'>
+              <FormItem className='text-left'>
                 <FormLabel className='text-foreground/80'>Password</FormLabel>
                 <FormControl>
-                    <div className='relative'>
+                  <div className='relative'>
                     <Input
-                        type={showPassword ? 'text' : 'password'}
-                        {...field}
-                        className="bg-muted/50 border-foreground/20 text-foreground placeholder:text-foreground/50 focus:bg-muted/60 focus-visible:ring-offset-0 focus-visible:ring-primary"
+                      type={showPassword ? 'text' : 'password'}
+                      {...field}
+                      className='bg-muted/50 border-foreground/20 text-foreground placeholder:text-foreground/50 focus:bg-muted/60 focus-visible:ring-offset-0 focus-visible:ring-primary'
                     />
                     <button
-                        type='button'
-                        onClick={() => setShowPassword(!showPassword)}
-                        className='absolute inset-y-0 right-0 flex items-center pr-3'
+                      type='button'
+                      onClick={() => setShowPassword(!showPassword)}
+                      className='absolute inset-y-0 right-0 flex items-center pr-3'
                     >
-                        {showPassword ? (
+                      {showPassword ? (
                         <EyeOff className='h-4 w-4 text-foreground/60' />
-                        ) : (
+                      ) : (
                         <Eye className='h-4 w-4 text-foreground/60' />
-                        )}
+                      )}
                     </button>
-                    </div>
+                  </div>
                 </FormControl>
-                 <div className="text-right">
-                    <Link href="#" className="text-xs text-muted-foreground hover:text-primary">
-                        Forgot Password?
-                    </Link>
+                <div className='text-right'>
+                  <Link
+                    href='#'
+                    className='text-xs text-muted-foreground hover:text-primary'
+                  >
+                    Forgot Password?
+                  </Link>
                 </div>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
-            />
-            <Button
+          />
+          <Button
             type='submit'
             className='w-full text-lg py-6 bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80 rounded-full'
             disabled={isLoading || isGoogleLoading}
-            >
+          >
             {isLoading ? 'Loading...' : 'Login'}
-            </Button>
+          </Button>
         </form>
-        </Form>
+      </Form>
 
-        <div className='relative my-6'>
+      <div className='relative my-6'>
         <div className='absolute inset-0 flex items-center'>
-            <span className='w-full border-t border-foreground/20' />
+          <span className='w-full border-t border-foreground/20' />
         </div>
         <div className='relative flex justify-center text-xs uppercase'>
-            <span className='bg-background px-2 text-muted-foreground'>
-            Or
-            </span>
+          <span className='bg-background px-2 text-muted-foreground'>Or</span>
         </div>
-        </div>
+      </div>
 
-        <div className="flex justify-center">
-            <Button
-                variant='outline'
-                className='rounded-full h-14 w-14'
-                onClick={handleGoogleAuth}
-                disabled={isLoading || isGoogleLoading}
-                aria-label="Login with Google"
-            >
-                {isGoogleLoading ? (
-                    '...'
-                ) : (
-                    <FaGoogle className='h-6 w-6' />
-                )}
-            </Button>
-        </div>
+      <div className='flex justify-center'>
+        <Button
+          variant='outline'
+          className='rounded-full h-14 w-14'
+          onClick={handleGoogleAuth}
+          disabled={isLoading || isGoogleLoading}
+          aria-label='Login with Google'
+        >
+          {isGoogleLoading ? '...' : <FaGoogle className='h-6 w-6' />}
+        </Button>
+      </div>
 
-         <div className="mt-8 text-center text-sm">
-            <p className="text-muted-foreground">
-                Don&apos;t have an account?{' '}
-                <button onClick={onGoToRegister} className="font-semibold text-primary hover:underline">
-                Register
-                </button>
-            </p>
-        </div>
+      <div className='mt-8 text-center text-sm'>
+        <p className='text-muted-foreground'>
+          Don&apos;t have an account?{' '}
+          <button
+            onClick={onGoToRegister}
+            className='font-semibold text-primary hover:underline'
+          >
+            Register
+          </button>
+        </p>
+      </div>
     </div>
   );
 }

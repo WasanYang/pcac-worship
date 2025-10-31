@@ -1,21 +1,31 @@
 'use client';
 
-import { 
-  Auth, 
-  createUserWithEmailAndPassword, 
+import {
+  Auth,
+  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   updateProfile,
   GoogleAuthProvider,
-  signInWithRedirect
+  signInWithRedirect,
+  signInWithPopup,
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { getSdks } from '@/firebase';
 import type { Role } from '@/lib/placeholder-data';
 
-export async function signUpWithEmail(auth: Auth, email: string, password: string, roles: Role[] = ['Team Member']) {
+export async function signUpWithEmail(
+  auth: Auth,
+  email: string,
+  password: string,
+  roles: Role[] = ['Team Member']
+) {
   const { firestore } = getSdks(auth.app);
-  
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+  const userCredential = await createUserWithEmailAndPassword(
+    auth,
+    email,
+    password
+  );
   const user = userCredential.user;
 
   const displayName = email.split('@')[0];
@@ -29,7 +39,7 @@ export async function signUpWithEmail(auth: Auth, email: string, password: strin
     name: displayName,
     email: user.email,
     role: roles,
-    avatarUrl: `https://picsum.photos/seed/${user.uid}/100/100`
+    avatarUrl: `https://picsum.photos/seed/${user.uid}/100/100`,
   });
 
   // If the role is Admin, also create a document in 'user_roles' collection
@@ -39,18 +49,27 @@ export async function signUpWithEmail(auth: Auth, email: string, password: strin
       id: user.uid,
       userId: user.uid,
       role: 'Admin',
-      permissions: [] // You can define specific permissions later
+      permissions: [], // You can define specific permissions later
     });
   }
 
   return userCredential;
 }
 
-export async function signInWithEmail(auth: Auth, email: string, password: string) {
+export async function signInWithEmail(
+  auth: Auth,
+  email: string,
+  password: string
+) {
   return await signInWithEmailAndPassword(auth, email, password);
 }
 
 export async function signInWithGoogle(auth: Auth) {
   const provider = new GoogleAuthProvider();
-  return await signInWithRedirect(auth, provider);
+  return await signInWithPopup(auth, provider);
+}
+
+export async function signUpWithGoogle(auth: Auth) {
+  const provider = new GoogleAuthProvider();
+  await signInWithPopup(auth, provider);
 }
