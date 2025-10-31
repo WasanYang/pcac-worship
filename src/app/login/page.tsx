@@ -30,12 +30,12 @@ export default function LoginPage() {
        {view !== 'initial' && (
            <Button 
                 variant="ghost" 
-                size="sm" 
+                size="icon" 
                 onClick={handleBack} 
-                className="absolute top-4 left-4 text-white hover:bg-black/20 hover:text-white z-20"
+                className="absolute top-4 left-4 text-foreground hover:bg-accent/50 z-20"
             >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
+                <ArrowLeft className="h-5 w-5" />
+                <span className="sr-only">Back</span>
             </Button>
         )}
 
@@ -98,16 +98,8 @@ export default function LoginPage() {
               animate='visible'
               exit='exit'
               transition={{ duration: 0.3 }}
-              className='relative z-10 flex h-screen w-full items-center justify-center p-4 text-center'
+              className='relative z-10 flex h-screen w-full items-center justify-center p-4 text-center bg-background'
             >
-                <div className="absolute inset-0 bg-black/70 -z-10" />
-                 <Image
-                    src={backgroundImageUrl}
-                    alt='Worship service'
-                    fill
-                    className='object-cover -z-20'
-                    data-ai-hint='worship service'
-                />
               {view === 'signIn' ? <SignInForm /> : <SignUpForm />}
             </motion.div>
           )}
