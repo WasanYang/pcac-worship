@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
@@ -81,18 +82,27 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       async (firebaseUser) => { // Auth state determined
         if (firebaseUser) {
           // User is signed in, check if they have a profile in Firestore
-          const userDocRef = doc(firestore, "team_members", firebaseUser.uid);
+          const userDocRef = doc(firestore, "users", firebaseUser.uid);
           const userDocSnap = await getDoc(userDocRef);
 
           if (!userDocSnap.exists()) {
-            // User is new, create a profile for them
+            // User is new, create a profile for them in /users
             try {
-              await setDoc(userDocRef, {
+               await setDoc(userDocRef, {
+                uid: firebaseUser.uid,
+                displayName: firebaseUser.displayName,
+                email: firebaseUser.email,
+                photoURL: firebaseUser.photoURL,
+              });
+
+              // Also create the team_member profile
+              const teamMemberDocRef = doc(firestore, "team_members", firebaseUser.uid);
+              await setDoc(teamMemberDocRef, {
                 id: firebaseUser.uid,
                 userId: firebaseUser.uid,
                 name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'New User',
                 email: firebaseUser.email,
-                role: ['Team Member'], // Default role as an array
+                role: ['Team Member'], // Default role
                 avatarUrl: firebaseUser.photoURL || `https://picsum.photos/seed/${firebaseUser.uid}/100/100`,
                 skills: [
                   { skill: 'Vocal', progress: 30 },
@@ -101,8 +111,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 mentoringNotes: [],
               });
             } catch (error) {
-              console.error("FirebaseProvider: Error creating user document:", error);
-              // We might want to handle this error more gracefully
+              console.error("FirebaseProvider: Error creating user documents:", error);
             }
           }
         }

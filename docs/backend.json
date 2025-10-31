@@ -1,6 +1,35 @@
 
 {
   "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "type": "object",
+      "description": "Represents a user's basic profile information, linked to their Firebase Authentication UID.",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The user's unique ID from Firebase Authentication."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "URL of the user's profile picture.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "uid",
+        "email"
+      ]
+    },
     "Song": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Song",
@@ -315,6 +344,22 @@
   "firestore": {
     "structure": [
       {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores basic user profile information. The document ID is the Firebase Auth `uid`. Accessible by the user themselves.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The Firebase Auth user ID (`uid`)."
+            }
+          ]
+        }
+      },
+      {
         "path": "/songs/{songId}",
         "definition": {
           "entityName": "Song",
@@ -447,6 +492,6 @@
         }
       }
     ],
-    "reasoning": "This Firestore data structure is designed to support the Prasiri Worship Manager application, focusing on scalability, security, and ease of maintenance. It adheres to the core design principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are Not Filters).  Authorization Independence is achieved through denormalization, and QAPs are addressed through structural segregation and membership models. The structure also accounts for user roles (Admin, Worship Leader, Team Member) and their corresponding permissions.\n\n**Authorization Independence:**\n*   User roles and team membership are denormalized where needed to avoid using `get()` calls in security rules.  For example, `TeamMember` documents are located at `/team_members/{teamMemberId}` but contain a denormalized `userId` linking them to the `/user_roles/{userId}` collection.  This lets rules validate a `TeamMember` based on their Firebase Auth `uid` and their presence in a `PeerGroup` or `Service` without needing to read other documents.\n\n**Structural Segregation:**\n*   The structure separates data with different access requirements into distinct collections.  `/songs` are global and accessible based on roles.  `/team_members/{teamMemberId}` are secured based on the `userId` field matching `request.auth.uid`. \n\n**Access Modeling:**\n*   **Private Data:** The `TeamMember` entity utilizes a path-based ownership model, ensuring that only the authenticated user can access their own `TeamMember` data.\n*   **Collaborative Data:** The `PeerGroup` entity uses a membership map (`memberIds` in the document itself, considered denormalized for access control purposes since the *presence* of the ID implies membership) to manage access.  The `ContactStatus` subcollection is then accessible to the `PeerGroup` members.\n*   **Global Roles (DBAC):** The `UserRole` entity uses a dedicated collection (`/user_roles/{userId}`) to define user roles, leveraging the 'Existence over Content' principle. The document's existence confirms the user's role.\n\n**QAPs Support:**\n*   The segregation of roles in `/user_roles/{userId}` enables secure `list` operations.  Rules can check if a document exists at that path to grant elevated permissions, without filtering.\n\nThis design enables secure and efficient Firestore security rules that are easy to understand, maintain, and debug. By denormalizing critical authorization information and strategically segregating data, the system minimizes the need for complex rule logic and ensures that data access is always appropriately controlled."
+    "reasoning": "This Firestore data structure is designed to support the Prasiri Worship Manager application, focusing on scalability, security, and ease of maintenance. It adheres to the core design principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are Not Filters).  Authorization Independence is achieved through denormalization, and QAPs are addressed through structural segregation and membership models. The structure also accounts for user roles (Admin, Worship Leader, Team Member) and their corresponding permissions.\n\n**Authorization Independence:**\n*   User roles and team membership are denormalized where needed to avoid using `get()` calls in security rules.  For example, `TeamMember` documents are located at `/team_members/{teamMemberId}` but contain a denormalized `userId` linking them to the `/user_roles/{userId}` collection.  This lets rules validate a `TeamMember` based on their Firebase Auth `uid` and their presence in a `PeerGroup` or `Service` without needing to read other documents.\n\n**Structural Segregation:**\n*   The structure separates data with different access requirements into distinct collections.  `/songs` are global and accessible based on roles.  `/team_members/{teamMemberId}` are secured based on the `userId` field matching `request.auth.uid`. \n\n**Access Modeling:**\n*   **Private Data:** The `UserProfile` and `TeamMember` entities utilize a path-based ownership model, ensuring that only the authenticated user can access their own data.\n*   **Collaborative Data:** The `PeerGroup` entity uses a membership map (`memberIds` in the document itself, considered denormalized for access control purposes since the *presence* of the ID implies membership) to manage access.  The `ContactStatus` subcollection is then accessible to the `PeerGroup` members.\n*   **Global Roles (DBAC):** The `UserRole` entity uses a dedicated collection (`/user_roles/{userId}`) to define user roles, leveraging the 'Existence over Content' principle. The document's existence confirms the user's role.\n\n**QAPs Support:**\n*   The segregation of roles in `/user_roles/{userId}` enables secure `list` operations.  Rules can check if a document exists at that path to grant elevated permissions, without filtering.\n\nThis design enables secure and efficient Firestore security rules that are easy to understand, maintain, and debug. By denormalizing critical authorization information and strategically segregating data, the system minimizes the need for complex rule logic and ensures that data access is always appropriately controlled."
   }
 }

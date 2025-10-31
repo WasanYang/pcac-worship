@@ -1,3 +1,4 @@
+
 'use client';
 
 import { ThemeProvider } from '@/providers/theme-provider';
@@ -9,10 +10,13 @@ import { FirebaseClientProvider, useUser, useAuth } from '@/firebase';
 import LoginPage from '@/app/login/page';
 import { useEffect, useState } from 'react';
 import { getRedirectResult } from 'firebase/auth';
+import { useToast } from '@/hooks/use-toast';
+import { FirebaseError } from 'firebase/app';
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
+  const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
   const [isRedirectLoading, setIsRedirectLoading] = useState(true);
 
@@ -30,13 +34,22 @@ function AppContent({ children }: { children: React.ReactNode }) {
         await getRedirectResult(auth);
       } catch (error) {
         console.error('Error handling redirect result:', error);
+        let description = 'An unexpected error occurred during Google Sign-In.';
+        if (error instanceof FirebaseError) {
+          description = error.message;
+        }
+        toast({
+          variant: 'destructive',
+          title: 'Google Sign-In Failed',
+          description,
+        });
       } finally {
-          setIsRedirectLoading(false);
+        setIsRedirectLoading(false);
       }
     };
 
     checkRedirect();
-  }, [auth]);
+  }, [auth, toast]);
 
   if (isUserLoading || isRedirectLoading || !isClient) {
     return (

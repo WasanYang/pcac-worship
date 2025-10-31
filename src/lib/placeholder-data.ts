@@ -31,6 +31,14 @@ export type Service = {
 
 export type Role = "Admin" | "Worship Leader" | "Vocalist" | "Keys" | "Guitar (Acoustic)" | "Guitar (Electric)" | "Bass" | "Drums" | "Sound" | "Media" | "Team Member";
 
+export type UserProfile = {
+  uid: string;
+  displayName: string | null;
+  email: string | null;
+  photoURL: string | null;
+};
+
+
 export type TeamMember = {
   id: string;
   name: string;
