@@ -12,7 +12,7 @@ import { SignUpForm } from './_components/SignUpForm';
 
 type View = 'initial' | 'signIn' | 'signUp';
 
-const backgroundImageUrl = placeholderImages.find(p => p.id === 'service2')?.imageUrl || '/placeholder.jpg';
+const backgroundImageUrl = placeholderImages.find(p => p.id === 'homeBanner')?.imageUrl || '/placeholder.jpg';
 
 export default function LoginPage() {
   const [view, setView] = useState<View>('initial');
@@ -26,23 +26,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className='relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-background'>
-      <Image
-        src={backgroundImageUrl}
-        alt='Worship service'
-        fill
-        className='object-cover'
-        data-ai-hint='worship service'
-      />
-      <div className='absolute inset-0 bg-black/60' />
-      <div className='relative z-10 flex w-full max-w-md flex-col items-center p-4 text-center text-white'>
-        
-        {view !== 'initial' && (
+    <div className='relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-background text-foreground'>
+       {view !== 'initial' && (
            <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={handleBack} 
-                className="absolute top-4 left-4 text-white hover:bg-white/10 hover:text-white"
+                className="absolute top-4 left-4 text-muted-foreground hover:bg-accent hover:text-accent-foreground z-20"
             >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
@@ -57,60 +47,67 @@ export default function LoginPage() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.3 }}
-              className='flex w-full flex-col items-center'
+              className='flex h-full w-full flex-col items-center justify-between p-8'
             >
-              <Music className='h-16 w-16 mb-4' />
-              <h1 className='text-4xl md:text-5xl font-bold'>Worship Flow</h1>
-              <p className='mt-2 text-lg text-white/80'>Streamline your worship team management.</p>
-              <div className='mt-10 flex w-full flex-col gap-4'>
-                <Button 
-                  size='lg' 
-                  onClick={() => setView('signIn')} 
-                  className="bg-primary/80 hover:bg-primary text-primary-foreground text-lg py-6"
-                >
-                  Sign In
-                </Button>
-                <Button 
-                  size='lg' 
-                  variant='outline' 
-                  onClick={() => setView('signUp')}
-                  className="bg-transparent border-white/80 hover:bg-white/10 text-white text-lg py-6"
-                >
-                  Sign Up
-                </Button>
+                <div className='relative w-full h-1/2 flex items-center justify-center'>
+                     <Image
+                        src={backgroundImageUrl}
+                        alt='Worship'
+                        width={400}
+                        height={400}
+                        className='absolute inset-0 w-full h-full object-contain opacity-10'
+                        data-ai-hint='worship band'
+                    />
+                    <div className='z-10 text-center'>
+                        <Music className='h-16 w-16 mx-auto mb-4 text-primary' />
+                        <h1 className='text-4xl md:text-5xl font-bold'>Worship Flow</h1>
+                        <p className='mt-2 text-lg text-muted-foreground'>Streamline your worship team management.</p>
+                    </div>
+                </div>
+
+                <div className='w-full max-w-sm flex flex-col gap-4'>
+                    <Button 
+                        size='lg' 
+                        onClick={() => setView('signIn')} 
+                        className="w-full bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80 text-lg py-6"
+                    >
+                    Sign In
+                    </Button>
+                    <Button 
+                        size='lg' 
+                        variant='outline' 
+                        onClick={() => setView('signUp')}
+                        className="w-full bg-white text-black border-2 border-black hover:bg-gray-100 dark:bg-black dark:text-white dark:border-white dark:hover:bg-black/80 text-lg py-6"
+                    >
+                    Sign Up
+                    </Button>
               </div>
             </motion.div>
           )}
 
-          {view === 'signIn' && (
-            <motion.div
-              key='signIn'
+          {(view === 'signIn' || view === 'signUp') && (
+             <motion.div
+              key={view}
               variants={formVariants}
               initial='hidden'
               animate='visible'
               exit='exit'
               transition={{ duration: 0.3 }}
-              className='w-full'
+              className='relative z-10 flex w-full max-w-md flex-col items-center p-4 text-center'
             >
-              <SignInForm />
-            </motion.div>
-          )}
-
-          {view === 'signUp' && (
-            <motion.div
-              key='signUp'
-              variants={formVariants}
-              initial='hidden'
-              animate='visible'
-              exit='exit'
-              transition={{ duration: 0.3 }}
-              className='w-full'
-            >
-              <SignUpForm />
+                <div className="absolute inset-0 bg-black/60 -z-10" />
+                 <Image
+                    src={backgroundImageUrl}
+                    alt='Worship service'
+                    fill
+                    className='object-cover -z-20'
+                    data-ai-hint='worship service'
+                />
+              {view === 'signIn' ? <SignInForm /> : <SignUpForm />}
             </motion.div>
           )}
         </AnimatePresence>
       </div>
-    </div>
   );
 }
+
