@@ -32,7 +32,7 @@ export default function LoginPage() {
                 variant="ghost" 
                 size="sm" 
                 onClick={handleBack} 
-                className="absolute top-4 left-4 text-muted-foreground hover:bg-accent hover:text-accent-foreground z-20"
+                className="absolute top-4 left-4 text-white hover:bg-black/20 hover:text-white z-20"
             >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
@@ -43,29 +43,30 @@ export default function LoginPage() {
           {view === 'initial' && (
             <motion.div
               key='initial'
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3 }}
-              className='flex h-full w-full flex-col items-center justify-between p-8'
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className='flex h-screen w-full flex-col'
             >
-                <div className='relative w-full h-1/2 flex items-center justify-center'>
+                {/* Top Half */}
+                <div className='relative flex-1 flex flex-col items-center justify-center'>
                      <Image
                         src={backgroundImageUrl}
                         alt='Worship'
-                        width={400}
-                        height={400}
-                        className='absolute inset-0 w-full h-full object-contain opacity-10'
+                        fill
+                        className='object-cover opacity-10'
                         data-ai-hint='worship band'
                     />
-                    <div className='z-10 text-center'>
+                    <div className='z-10 text-center p-4'>
                         <Music className='h-16 w-16 mx-auto mb-4 text-primary' />
                         <h1 className='text-4xl md:text-5xl font-bold'>Worship Flow</h1>
                         <p className='mt-2 text-lg text-muted-foreground'>Streamline your worship team management.</p>
                     </div>
                 </div>
 
-                <div className='w-full max-w-sm flex flex-col gap-4'>
+                {/* Bottom Half */}
+                <div className='py-8 px-4 w-full max-w-sm mx-auto flex flex-col gap-4'>
                     <Button 
                         size='lg' 
                         onClick={() => setView('signIn')} 
@@ -77,7 +78,7 @@ export default function LoginPage() {
                         size='lg' 
                         variant='outline' 
                         onClick={() => setView('signUp')}
-                        className="w-full bg-white text-black border-2 border-black hover:bg-gray-100 dark:bg-black dark:text-white dark:border-white dark:hover:bg-black/80 text-lg py-6"
+                        className="w-full bg-background text-foreground border-2 border-foreground/50 hover:bg-accent hover:text-accent-foreground dark:border-white/50 text-lg py-6"
                     >
                     Sign Up
                     </Button>
@@ -93,9 +94,9 @@ export default function LoginPage() {
               animate='visible'
               exit='exit'
               transition={{ duration: 0.3 }}
-              className='relative z-10 flex w-full max-w-md flex-col items-center p-4 text-center'
+              className='relative z-10 flex h-screen w-full items-center justify-center p-4 text-center'
             >
-                <div className="absolute inset-0 bg-black/60 -z-10" />
+                <div className="absolute inset-0 bg-black/70 -z-10" />
                  <Image
                     src={backgroundImageUrl}
                     alt='Worship service'
@@ -110,4 +111,3 @@ export default function LoginPage() {
       </div>
   );
 }
-

@@ -109,9 +109,9 @@ export function SignUpForm() {
   };
 
   return (
-    <div className='w-full'>
-        <Music className='h-12 w-12 mx-auto mb-4' />
-        <h2 className='text-3xl font-bold text-center'>Create Account</h2>
+    <div className='w-full max-w-sm'>
+        <Music className='h-12 w-12 mx-auto mb-4 text-white' />
+        <h2 className='text-3xl font-bold text-center text-white'>Create Account</h2>
         <p className='text-center text-white/80 mb-8'>Join your team and start collaborating.</p>
         
         <Form {...form}>
@@ -207,7 +207,7 @@ export function SignUpForm() {
             <span className='w-full border-t border-white/20' />
         </div>
         <div className='relative flex justify-center text-xs uppercase'>
-            <span className='bg-black/50 px-2 text-white/80'>
+            <span className='bg-background/80 px-2 text-white/80 backdrop-blur-sm'>
             Or continue with
             </span>
         </div>
