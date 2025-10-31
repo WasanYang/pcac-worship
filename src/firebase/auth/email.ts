@@ -9,6 +9,7 @@ import {
   signInWithRedirect,
   signInWithPopup,
 } from 'firebase/auth';
+import { FirebaseError } from 'firebase/app';
 import { doc, setDoc } from 'firebase/firestore';
 import { getSdks } from '@/firebase';
 import type { Role } from '@/lib/placeholder-data';
@@ -66,10 +67,28 @@ export async function signInWithEmail(
 
 export async function signInWithGoogle(auth: Auth) {
   const provider = new GoogleAuthProvider();
-  return await signInWithPopup(auth, provider);
+  try {
+    return await signInWithPopup(auth, provider);
+  } catch (error) {
+    if (error instanceof FirebaseError && error.code === 'auth/popup-blocked') {
+      console.warn('Pop-up was blocked, falling back to redirect method.');
+      await signInWithRedirect(auth, provider);
+    }
+    // Re-throw other errors so they can be handled by the calling component
+    throw error;
+  }
 }
 
 export async function signUpWithGoogle(auth: Auth) {
   const provider = new GoogleAuthProvider();
-  await signInWithPopup(auth, provider);
+  try {
+    // The user creation logic is handled by FirebaseProvider on auth state change
+    await signInWithPopup(auth, provider);
+  } catch (error) {
+    if (error instanceof FirebaseError && error.code === 'auth/popup-blocked') {
+      console.warn('Pop-up was blocked, falling back to redirect method.');
+      await signInWithRedirect(auth, provider);
+    }
+    throw error;
+  }
 }
