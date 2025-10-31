@@ -1,46 +1,20 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import {
-  HeartHandshake,
-  ListMusic,
-  Users,
-  CalendarDays,
-  User,
-  Target,
-  Calendar,
-  UserCheck,
-} from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { HeartHandshake, CalendarDays, Target, Calendar } from 'lucide-react';
 import { useI18n } from '@/providers/i18n-provider';
 import { useUser, useDoc, useCollection, useMemoFirebase } from '@/firebase';
-import {
-  doc,
-  collection,
-  query,
-  where,
-  Timestamp,
-  limit,
-} from 'firebase/firestore';
+import { doc, collection, query, where, Timestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import type {
   Service,
   TeamMember,
   AccountabilityGroup,
-  Schedule,
 } from '@/lib/placeholder-data';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 export default function Dashboard() {
@@ -54,15 +28,10 @@ export default function Dashboard() {
   );
   const { data: teamMember, isLoading: isLoadingData } =
     useDoc<TeamMember>(teamMemberRef);
-  useEffect(() => {
-    console.log('teamMember', teamMember);
-  }, [teamMember]);
+
   const servicesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    const ret = query(
-      collection(firestore, 'services')
-      // where('date', '>=', now.toISOString())
-    );
+    const ret = query(collection(firestore, 'services'));
     return ret;
   }, [firestore]);
 
@@ -76,9 +45,13 @@ export default function Dashboard() {
       setUpcomingServices(undefined);
       return;
     }
-    const sorted = [...servicesFromSchedules].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
+    const sorted = [...servicesFromSchedules].sort((a, b) => {
+      const dateA =
+        a.date instanceof Timestamp ? a.date.toDate() : new Date(a.date);
+      const dateB =
+        b.date instanceof Timestamp ? b.date.toDate() : new Date(b.date);
+      return dateA.getTime() - dateB.getTime();
+    });
     setUpcomingServices(sorted);
   }, [servicesFromSchedules]);
 

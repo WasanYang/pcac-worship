@@ -1,11 +1,18 @@
-
 'use client';
 
-import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
+import React, {
+  DependencyList,
+  createContext,
+  useContext,
+  ReactNode,
+  useMemo,
+  useState,
+  useEffect,
+} from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
-import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -44,14 +51,17 @@ export interface FirebaseServicesAndUser {
 }
 
 // Return type for useUser() - specific to user auth state
-export interface UserHookResult { // Renamed from UserAuthHookResult for consistency if desired, or keep as UserAuthHookResult
+export interface UserHookResult {
+  // Renamed from UserAuthHookResult for consistency if desired, or keep as UserAuthHookResult
   user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
 
 // React Context
-export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
+export const FirebaseContext = createContext<FirebaseContextState | undefined>(
+  undefined
+);
 
 /**
  * FirebaseProvider manages and provides Firebase services and user authentication state.
@@ -70,8 +80,13 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
-    if (!auth || !firestore) { // If no Auth service instance, cannot determine user state
-      setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth or Firestore service not provided.") });
+    if (!auth || !firestore) {
+      // If no Auth service instance, cannot determine user state
+      setUserAuthState({
+        user: null,
+        isUserLoading: false,
+        userError: new Error('Auth or Firestore service not provided.'),
+      });
       return;
     }
 
@@ -79,12 +94,13 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
     const unsubscribe = onAuthStateChanged(
       auth,
-      async (firebaseUser) => { // Auth state determined
+      async (firebaseUser) => {
+        // Auth state determined
         if (firebaseUser) {
           // User is signed in, check if they have a profile in Firestore
           const userProfileRef = doc(firestore, 'users', firebaseUser.uid);
-          const teamMemberDocRef = doc(firestore, "team_members", firebaseUser.uid);
-          
+          // const teamMemberDocRef = doc(firestore, "team_members", firebaseUser.uid);
+
           try {
             const userProfileSnap = await getDoc(userProfileRef);
 
@@ -96,30 +112,43 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 displayName: firebaseUser.displayName,
                 email: firebaseUser.email,
                 photoURL: firebaseUser.photoURL,
+                status: 'guest',
               };
               await setDoc(userProfileRef, profileData);
-              
-              const teamMemberData = {
-                id: firebaseUser.uid,
-                userId: firebaseUser.uid,
-                name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'New User',
-                email: firebaseUser.email,
-                role: ['Team Member'], // Default role
-                avatarUrl: firebaseUser.photoURL || `https://picsum.photos/seed/${firebaseUser.uid}/100/100`,
-                skills: [],
-                blockoutDates: [],
-              };
-              await setDoc(teamMemberDocRef, teamMemberData);
+
+              // const teamMemberData = {
+              //   id: firebaseUser.uid,
+              //   userId: firebaseUser.uid,
+              //   name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'New User',
+              //   email: firebaseUser.email,
+              //   role: ['Team Member'], // Default role
+              //   avatarUrl: firebaseUser.photoURL || `https://picsum.photos/seed/${firebaseUser.uid}/100/100`,
+              //   skills: [],
+              //   blockoutDates: [],
+              // };
+              // await setDoc(teamMemberDocRef, teamMemberData);
             }
           } catch (error) {
-              console.error("FirebaseProvider: Error creating user documents:", error);
+            console.error(
+              'FirebaseProvider: Error creating user documents:',
+              error
+            );
           }
         }
-        setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+        setUserAuthState({
+          user: firebaseUser,
+          isUserLoading: false,
+          userError: null,
+        });
       },
-      (error) => { // Auth listener error
-        console.error("FirebaseProvider: onAuthStateChanged error:", error);
-        setUserAuthState({ user: null, isUserLoading: false, userError: error });
+      (error) => {
+        // Auth listener error
+        console.error('FirebaseProvider: onAuthStateChanged error:', error);
+        setUserAuthState({
+          user: null,
+          isUserLoading: false,
+          userError: error,
+        });
       }
     );
     return () => unsubscribe(); // Cleanup
@@ -158,8 +187,15 @@ export const useFirebase = (): FirebaseServicesAndUser => {
     throw new Error('useFirebase must be used within a FirebaseProvider.');
   }
 
-  if (!context.areServicesAvailable || !context.firebaseApp || !context.firestore || !context.auth) {
-    throw new Error('Firebase core services not available. Check FirebaseProvider props.');
+  if (
+    !context.areServicesAvailable ||
+    !context.firebaseApp ||
+    !context.firestore ||
+    !context.auth
+  ) {
+    throw new Error(
+      'Firebase core services not available. Check FirebaseProvider props.'
+    );
   }
 
   return {
@@ -190,14 +226,17 @@ export const useFirebaseApp = (): FirebaseApp => {
   return firebaseApp;
 };
 
-type MemoFirebase <T> = T & {__memo?: boolean};
+type MemoFirebase<T> = T & { __memo?: boolean };
 
-export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | (MemoFirebase<T>) {
+export function useMemoFirebase<T>(
+  factory: () => T,
+  deps: DependencyList
+): T | MemoFirebase<T> {
   const memoized = useMemo(factory, deps);
-  
-  if(typeof memoized !== 'object' || memoized === null) return memoized;
+
+  if (typeof memoized !== 'object' || memoized === null) return memoized;
   (memoized as MemoFirebase<T>).__memo = true;
-  
+
   return memoized;
 }
 
@@ -206,7 +245,8 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
  * This provides the User object, loading status, and any auth errors.
  * @returns {UserHookResult} Object with user, isUserLoading, userError.
  */
-export const useUser = (): UserHookResult => { // Renamed from useAuthUser
+export const useUser = (): UserHookResult => {
+  // Renamed from useAuthUser
   const { user, isUserLoading, userError } = useFirebase(); // Leverages the main hook
   return { user, isUserLoading, userError };
 };

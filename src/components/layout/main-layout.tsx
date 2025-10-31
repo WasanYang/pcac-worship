@@ -20,7 +20,11 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   const { isMobile, isClient } = useIsMobile();
+
   const pathname = usePathname();
+
+  const isWelcomePage = pathname === '/welcome';
+
   const { t } = useI18n();
   // For demonstration, we'll use a few images for the carousel
   const bannerImages = placeholderImages.filter(
@@ -110,7 +114,7 @@ export default function MainLayout({
           </div>
         </div>
 
-        {isClient && isMobile && (
+        {isClient && isMobile && !isWelcomePage && (
           <div className='fixed bottom-0 left-0 z-40 w-full border-t bg-background/95 backdrop-blur-sm'>
             <div className='grid h-16 grid-cols-5 items-center justify-items-center gap-4 px-4'>
               {navItems.map((item) => {

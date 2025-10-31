@@ -64,9 +64,7 @@ export function SignUpForm({ onGoToSignIn }: SignUpFormProps) {
 
     setIsLoading(true);
     try {
-      await signUpWithEmail(auth, values.email, values.password, [
-        'Team Member',
-      ] as Role[]);
+      await signUpWithEmail(auth, values.email, values.password);
     } catch (error) {
       console.error('Email Auth Error:', error);
       let description = 'An unexpected error occurred.';

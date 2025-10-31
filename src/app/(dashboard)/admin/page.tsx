@@ -138,12 +138,7 @@ export default function AdminPage() {
     }
     setIsLoading(true);
     try {
-      await signUpWithEmail(
-        auth,
-        values.email,
-        values.password,
-        values.roles as Role[]
-      );
+      await signUpWithEmail(auth, values.email, values.password);
       toast({
         title: 'User Created',
         description: `A new account for ${values.email} has been created.`,
@@ -232,7 +227,9 @@ export default function AdminPage() {
     <div className='flex flex-col gap-8'>
       <div className='flex items-center justify-between'>
         <div>
-          <h1 className='text-2xl md:text-3xl font-bold tracking-tight'>{t('admin')}</h1>
+          <h1 className='text-2xl md:text-3xl font-bold tracking-tight'>
+            {t('admin')}
+          </h1>
           <p className='text-muted-foreground'>{t('teamMembersDesc')}</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
