@@ -47,13 +47,13 @@ export function UserNav() {
   const firestore = useFirestore();
 
   const teamMemberRef = useMemoFirebase(
-    () => (user ? doc(firestore, 'team_members', user.uid) : null),
+    () => (user ? doc(firestore, 'users', user.uid) : null),
     [firestore, user]
   );
   const { data: teamMember } = useDoc<TeamMember>(teamMemberRef);
 
   const isAdmin =
-    Array.isArray(teamMember?.role) && teamMember.role.includes('Admin');
+    Array.isArray(teamMember?.role) && teamMember.role.includes('admin');
 
   const handleLogout = async () => {
     if (auth) {
@@ -137,13 +137,7 @@ export function UserNav() {
               <p className='text-xs font-medium text-muted-foreground px-2'>
                 MENU
               </p>
-              {/* <Link href="/settings" className="flex items-center justify-between p-2 rounded-md hover:bg-accent text-sm">
-                    <div className="flex items-center gap-3">
-                        <UserIcon className="h-4 w-4" />
-                        <span>{t('profile')}</span>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground"/>
-                </Link> */}
+
               <Link
                 href='/settings'
                 className='flex items-center justify-between p-2 rounded-md hover:bg-accent text-sm'
@@ -163,16 +157,6 @@ export function UserNav() {
                     <div className='flex items-center gap-3'>
                       <Shield className='h-4 w-4' />
                       <span>{t('admin')}</span>
-                    </div>
-                    <ChevronRight className='h-4 w-4 text-muted-foreground' />
-                  </Link>
-                  <Link
-                    href='/admin/songs'
-                    className='flex items-center justify-between p-2 rounded-md hover:bg-accent text-sm'
-                  >
-                    <div className='flex items-center gap-3'>
-                      <ListMusic className='h-4 w-4' />
-                      <span>Songs</span>
                     </div>
                     <ChevronRight className='h-4 w-4 text-muted-foreground' />
                   </Link>

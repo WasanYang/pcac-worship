@@ -5,11 +5,18 @@ import { useAuth, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { Hourglass, MailCheck } from 'lucide-react';
+import { useEffect } from 'react';
 
 export default function WelcomePage() {
   const auth = useAuth();
   const router = useRouter();
   const { user, isUserLoading } = useUser();
+  useEffect(() => {
+    console.log(user);
+    if (user) {
+      // router.push('/dashboard');
+    }
+  }, [user, router]);
 
   const handleLogout = async () => {
     try {

@@ -4,13 +4,22 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UserNav } from '@/components/layout/user-nav';
-import { Music, Users, Music2 } from 'lucide-react';
+import {
+  Music,
+  Users,
+  Music2,
+  LayoutDashboard,
+  UsersRound,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/providers/i18n-provider';
 
 const adminNavItems = [
+  { href: '/admin', icon: LayoutDashboard, labelKey: 'dashboard' },
   { href: '/admin/users', icon: Users, labelKey: 'users' },
+  { href: '/admin/teams', icon: UsersRound, labelKey: 'teams' },
   { href: '/admin/songs', icon: Music2, labelKey: 'songs' },
+  { href: '/admin/services', icon: Music2, labelKey: 'services' },
 ];
 
 export default function AdminLayout({
@@ -44,7 +53,7 @@ export default function AdminLayout({
                     href={item.href}
                     className={cn(
                       'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-                      pathname.startsWith(item.href) && 'bg-muted text-primary'
+                      pathname === item.href && 'bg-muted text-primary'
                     )}
                   >
                     <item.icon className='h-4 w-4' />

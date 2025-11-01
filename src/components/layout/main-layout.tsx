@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar } from '@/components/ui/sidebar';
 import { SidebarNav, navItems } from '@/components/layout/sidebar-nav';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -13,6 +13,8 @@ import { placeholderImages } from '@/lib/placeholder-images.json';
 import { UserNav } from './user-nav';
 import { Music } from 'lucide-react';
 import { Carousel, CarouselContent, CarouselItem } from '../ui/carousel';
+import { useAuth, useFirestore } from '@/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function MainLayout({
   children,
@@ -20,13 +22,32 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   const { isMobile, isClient } = useIsMobile();
-
+  const { currentUser: user } = useAuth();
+  const firestore = useFirestore();
+  const router = useRouter();
   const pathname = usePathname();
-
   const isWelcomePage = pathname === '/welcome';
 
+  React.useEffect(() => {
+    const checkUserStatus = async () => {
+      // ไม่ต้องตรวจสอบถ้ายังไม่มี user, firestore หรือถ้าอยู่ที่หน้า welcome อยู่แล้ว
+      if (!user || !firestore || isWelcomePage) {
+        return;
+      }
+
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      // ถ้าข้อมูล user ไม่มีในระบบ หรือ status ไม่ใช่ 'approved' ให้ redirect
+      if (!userDocSnap.exists() || userDocSnap.data()?.status !== 'approved') {
+        router.push('/welcome');
+      }
+    };
+
+    checkUserStatus();
+  }, [user, firestore, pathname, router, isWelcomePage]);
+
   const { t } = useI18n();
-  // For demonstration, we'll use a few images for the carousel
   const bannerImages = placeholderImages.filter(
     (p) => p.id.startsWith('homeBanner') || p.id.startsWith('service')
   );

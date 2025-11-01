@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { collection } from 'firebase/firestore';
+import { useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -8,9 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { useI18n } from '@/providers/i18n-provider';
-import { useToast } from '@/hooks/use-toast';
 import {
   Table,
   TableBody,
@@ -19,169 +18,184 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Loader2 } from 'lucide-react';
 import {
-  useGetUsersQuery,
-  useUpdateUserMutation,
-  User,
-} from '@/lib/features/user/user-api';
+  Users,
+  Music,
+  Calendar,
+  BarChart,
+  Loader2,
+  AlertCircle,
+} from 'lucide-react';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { User } from '@/lib/features/user/user-api';
+import { Service, Song } from '@/lib/placeholder-data';
+// import { Song } from '@/lib/features/songs/songs-api';
+// import { Service } from '@/lib/features/services/services-api';
 
 export default function AdminPage() {
   const { t } = useI18n();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [approvingUserId, setApprovingUserId] = useState<string | null>(null);
+  const firestore = useFirestore();
 
+  const { data: allUsers, isLoading: isLoadingUsers } = useCollection<User>(
+    useMemoFirebase(
+      () => (firestore ? collection(firestore, 'users') : null),
+      [firestore]
+    )
+  );
+  const { data: allSongs, isLoading: isLoadingSongs } = useCollection<Song>(
+    useMemoFirebase(
+      () => (firestore ? collection(firestore, 'songs') : null),
+      [firestore]
+    )
+  );
   const {
-    data: allUsers,
-    isLoading: isLoadingUsers,
-    error: usersError,
-  } = useGetUsersQuery();
-  const [updateUser] = useUpdateUserMutation();
+    data: allServices,
+    isLoading: isLoadingServices,
+    error: servicesError, // Keep error for services to show in the UI
+  } = useCollection<Service>(
+    useMemoFirebase(
+      () => (firestore ? collection(firestore, 'services') : null),
+      [firestore]
+    )
+  );
 
-  const sortedUsers = useMemo(() => {
+  const pendingUsers = useMemo(() => {
     if (!allUsers) return [];
-    return [...allUsers].sort((a, b) => {
-      if (a.status === 'pending' && b.status !== 'pending') return -1;
-      if (a.status !== 'pending' && b.status === 'pending') return 1;
-      return (a.displayName || '').localeCompare(b.displayName || '');
-    });
+    return allUsers.filter((user) => user.status === 'pending');
   }, [allUsers]);
 
-  const handleApproveUser = async (user: User) => {
-    setApprovingUserId(user.uid);
-    setIsLoading(true);
+  const stats = [
+    {
+      title: 'Total Users',
+      icon: Users,
+      value: allUsers?.length ?? 0,
+      isLoading: isLoadingUsers,
+    },
+    {
+      title: 'Total Songs',
+      icon: Music,
+      value: allSongs?.length ?? 0,
+      isLoading: isLoadingSongs,
+    },
+    {
+      title: 'Total Services',
+      icon: Calendar,
+      value: allServices?.length ?? 0,
+      isLoading: isLoadingServices,
+    },
+    {
+      title: 'Pending Approvals',
+      icon: Users,
+      value: pendingUsers.length,
+      isLoading: isLoadingUsers,
+      className: 'text-yellow-600',
+    },
+  ];
 
-    try {
-      await updateUser({ uid: user.uid, payload: { status: 'approved' } });
-      toast({
-        title: 'User Approved',
-        description: `${user.displayName || user.email} is now a team member.`,
-      });
-    } catch (error) {
-      console.error('Error approving user:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Approval Failed',
-        description: 'Could not approve the user. Please try again.',
-      });
-    } finally {
-      setApprovingUserId(null);
-      setIsLoading(false);
-    }
-  };
+  const upcomingServices = useMemo(() => {
+    if (!allServices) return [];
+    const now = new Date();
+    return [...allServices]
+      .filter((service) => new Date(service.date) >= now)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 5);
+  }, [allServices]);
 
   return (
     <div className='flex flex-col gap-8'>
-      <div className='flex items-center justify-between'>
-        <div>
-          <h1 className='text-2xl md:text-3xl font-bold tracking-tight'>
-            {t('admin')}
-          </h1>
-          <p className='text-muted-foreground'>
-            Approve new users to grant them access to the dashboard.
-          </p>
-        </div>
+      <div>
+        <h1 className='text-2xl md:text-3xl font-bold tracking-tight'>
+          {t('admin')} Dashboard
+        </h1>
+        <p className='text-muted-foreground'>
+          An overview of your worship management system.
+        </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All System Users</CardTitle>
-          <CardDescription>
-            List of all users in the system. You can edit their roles here.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className='text-right'>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoadingUsers ? (
-                <TableRow>
-                  <TableCell colSpan={3} className='text-center'>
-                    <Loader2 className='mx-auto h-6 w-6 animate-spin text-muted-foreground' />
-                  </TableCell>
-                </TableRow>
-              ) : usersError ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={3}
-                    className='text-center text-destructive'
-                  >
-                    Error loading users.
-                  </TableCell>
-                </TableRow>
+      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+        {stats.map((stat) => (
+          <Card key={stat.title}>
+            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+              <CardTitle className='text-sm font-medium'>
+                {stat.title}
+              </CardTitle>
+              <stat.icon className='h-4 w-4 text-muted-foreground' />
+            </CardHeader>
+            <CardContent>
+              {stat.isLoading ? (
+                <Loader2 className='h-8 w-8 animate-spin text-muted-foreground' />
               ) : (
-                sortedUsers.map((user) => (
-                  <TableRow key={user.uid}>
-                    <TableCell>
-                      <div className='flex items-center gap-3'>
-                        <Avatar className='h-9 w-9'>
-                          <AvatarImage
-                            src={user.photoURL || undefined}
-                            alt={user.displayName || 'User'}
-                          />
-                          <AvatarFallback>
-                            {user.displayName
-                              ? user.displayName
-                                  .split(' ')
-                                  .map((n) => n[0])
-                                  .join('')
-                              : 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className='font-medium'>{user.displayName}</p>
-                          <p className='text-sm text-muted-foreground'>
-                            {user.email}
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          user.status === 'approved' ? 'default' : 'secondary'
-                        }
-                        className={
-                          user.status === 'approved' ? 'bg-green-600' : ''
-                        }
-                      >
-                        {user.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className='text-right'>
-                      {user.status !== 'approved' ? (
-                        <Button
-                          size='sm'
-                          onClick={() => handleApproveUser(user)}
-                          disabled={isLoading && approvingUserId === user.uid}
-                        >
-                          {isLoading && approvingUserId === user.uid ? (
-                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                          ) : null}
-                          Approve
-                        </Button>
-                      ) : (
-                        <span className='flex items-center justify-end gap-2 text-sm text-green-600'>
-                          <CheckCircle className='h-4 w-4' /> Approved
-                        </span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
+                <div className={`text-2xl font-bold ${stat.className || ''}`}>
+                  {stat.value}
+                </div>
               )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className='grid gap-8 md:grid-cols-2'>
+        <Card>
+          <CardHeader>
+            <CardTitle>Upcoming Services</CardTitle>
+            <CardDescription>
+              The next 5 scheduled worship services.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoadingServices ? (
+              <div className='flex justify-center items-center h-40'>
+                <Loader2 className='h-8 w-8 animate-spin text-muted-foreground' />
+              </div>
+            ) : servicesError ? (
+              <div className='flex flex-col items-center justify-center h-40 text-destructive'>
+                <AlertCircle className='h-8 w-8 mb-2' />
+                <p>Error loading services.</p>
+              </div>
+            ) : upcomingServices.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Service</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Leader</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {upcomingServices.map((service) => (
+                    <TableRow key={service.id}>
+                      <TableCell className='font-medium'>
+                        {service.theme}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(service.date).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>{service.worshipLeaderName}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className='text-center text-muted-foreground py-10'>
+                No upcoming services.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>System Activity</CardTitle>
+            <CardDescription>Recent activities in the system.</CardDescription>
+          </CardHeader>
+          <CardContent className='flex items-center justify-center h-full'>
+            <div className='text-center text-muted-foreground'>
+              <BarChart className='mx-auto h-12 w-12 mb-4' />
+              <p>Activity chart coming soon.</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
