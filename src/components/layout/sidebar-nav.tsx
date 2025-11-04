@@ -16,14 +16,7 @@ import { useI18n } from '@/providers/i18n-provider';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { TeamMember } from '@/lib/placeholder-data';
-
-export const navItems = [
-  { href: '/', labelKey: 'dashboard', icon: LayoutDashboard },
-  { href: '/songs', labelKey: 'songs', icon: ListMusic },
-  { href: '/services', labelKey: 'services', icon: Calendar },
-  { href: '/team', labelKey: 'team', icon: Users },
-  { href: '/accountability', labelKey: 'accountability', icon: HeartHandshake },
-];
+import { navItems } from './footer-menu';
 
 export function SidebarNav() {
   const pathname = usePathname();
@@ -37,8 +30,8 @@ export function SidebarNav() {
   );
   const { data: teamMember } = useDoc<TeamMember>(teamMemberRef);
 
-  const isAdmin =
-    Array.isArray(teamMember?.role) && teamMember.role.includes('Admin');
+  // const isAdmin =
+  //   Array.isArray(teamMember?.role) && teamMember.role.includes('Admin');
 
   return (
     <div className='flex h-full max-h-screen flex-col gap-2'>

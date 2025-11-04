@@ -1,10 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { SidebarProvider, Sidebar } from '@/components/ui/sidebar';
-import { SidebarNav, navItems } from '@/components/layout/sidebar-nav';
+import Link from 'next/link'; // SidebarNav is not used anymore
+import { usePathname, useRouter } from 'next/navigation'; // SidebarProvider and Sidebar are not used anymore
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/providers/i18n-provider';
@@ -15,6 +13,8 @@ import { Music } from 'lucide-react';
 import { Carousel, CarouselContent, CarouselItem } from '../ui/carousel';
 import { useAuth, useFirestore } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { TopBar } from './top-bar';
+import { FooterMenu, navItems } from './footer-menu';
 
 export default function MainLayout({
   children,
@@ -64,102 +64,59 @@ export default function MainLayout({
   };
 
   return (
-    <SidebarProvider>
-      <div className='min-h-screen w-full'>
-        <header className='sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6'>
-          <Link
-            href='/'
-            className='flex items-center gap-2 font-semibold text-lg'
-          >
-            <Music className='h-6 w-6' />
-            <span className='sr-only lg:not-sr-only'>{t('prasiri')}</span>
-          </Link>
-
-          <UserNav />
-        </header>
-        <div className='lg:flex'>
-          <Sidebar
-            side='left'
-            className='hidden lg:block flex-shrink-0 w-64 border-r mt-[60px]'
-          >
-            <SidebarNav />
-          </Sidebar>
-
-          <div className='flex flex-col flex-1'>
-            {bannerImages.length > 0 && (
-              <div className='w-full lg:p-6 lg:pb-0'>
-                <Carousel
-                  opts={{
-                    loop: true,
-                  }}
-                  className='w-full'
-                >
-                  <CarouselContent className='-ml-0'>
-                    {bannerImages.map((image, index) => (
-                      <CarouselItem key={index} className='pl-0'>
-                        <div className='relative w-full h-48 lg:h-64 lg:rounded-lg overflow-hidden'>
-                          <Image
-                            src={image.imageUrl}
-                            alt={image.description || 'Banner image'}
-                            fill
-                            className='object-cover'
-                            data-ai-hint={image.imageHint}
-                          />
-                          <div className='absolute inset-0 bg-black/50' />
-                          <div className='absolute inset-0 flex items-center justify-center'>
-                            <div className='text-center text-white'>
-                              <h1 className='text-3xl md:text-4xl font-bold'>
-                                {getPageTitle()}
-                              </h1>
-                              <p className='text-base md:text-lg'>
-                                Worship Team Management
-                              </p>
-                            </div>
+    <div className='min-h-screen w-full bg-gradient-to-t from-secondary from-70% to-background'>
+      <div className='mx-auto flex max-w-3xl flex-col'>
+        <TopBar />
+        <div className='flex w-full flex-col flex-1'>
+          {bannerImages.length > 0 && (
+            <div className='w-full p-4 pb-0 md:p-6 md:pb-0'>
+              <Carousel
+                opts={{
+                  loop: true,
+                }}
+                className='w-full'
+              >
+                <CarouselContent className='-ml-0'>
+                  {bannerImages.map((image, index) => (
+                    <CarouselItem key={index} className='pl-0'>
+                      <div className='relative w-full h-48 lg:h-64 lg:rounded-lg overflow-hidden'>
+                        <Image
+                          src={image.imageUrl}
+                          alt={image.description || 'Banner image'}
+                          fill
+                          className='object-cover'
+                          data-ai-hint={image.imageHint}
+                        />
+                        <div className='absolute inset-0 bg-black/50' />
+                        <div className='absolute inset-0 flex items-center justify-center'>
+                          <div className='text-center text-white'>
+                            <h1 className='text-3xl md:text-4xl font-bold'>
+                              {getPageTitle()}
+                            </h1>
+                            <p className='text-base md:text-lg'>
+                              Worship Team Management
+                            </p>
                           </div>
                         </div>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                </Carousel>
-              </div>
-            )}
-            <main
-              className={cn(
-                'flex-1 flex flex-col gap-4 p-4 lg:gap-6 lg:p-6',
-                isClient && isMobile ? 'pb-24' : 'pb-4',
-                !bannerImages.length && 'pt-6'
-              )}
-            >
-              <div className='flex-1'>{children}</div>
-            </main>
-          </div>
-        </div>
-
-        {isClient && isMobile && !isWelcomePage && (
-          <div className='fixed bottom-0 left-0 z-40 w-full border-t bg-background/95 backdrop-blur-sm'>
-            <div className='grid h-16 grid-cols-5 items-center justify-items-center gap-4 px-4'>
-              {navItems.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      'flex flex-col items-center justify-center gap-1 text-muted-foreground',
-                      isActive && 'text-primary'
-                    )}
-                  >
-                    <item.icon className='h-5 w-5' />
-                    <span className='text-[11px] font-medium'>
-                      {t(item.labelKey as any)}
-                    </span>
-                  </Link>
-                );
-              })}
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
             </div>
-          </div>
-        )}
+          )}
+          <main
+            className={cn(
+              'flex-1 flex flex-col gap-4 p-4 lg:gap-6 lg:p-6 h-full',
+              isClient && isMobile ? 'pb-24' : 'pb-4',
+              !bannerImages.length && 'pt-6'
+            )}
+          >
+            <div className='flex-1 h-full'>{children}</div>
+          </main>
+        </div>
       </div>
-    </SidebarProvider>
+      {isClient && !isWelcomePage && <FooterMenu />}
+    </div>
   );
 }
