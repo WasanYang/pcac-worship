@@ -72,58 +72,75 @@ export default function ServicesPage() {
       )}
 
       <div className='grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4'>
-        {services?.map((service) => (
-          <Link href={`/services/${service.id}`} key={service.id}>
-            <Card className='flex flex-col bg-card shadow-none border-0 h-full group p-1 rounded-3xl'>
-              <div className='overflow-hidden rounded-3xl relative'>
-                <Image
-                  src={service.imageUrl}
-                  alt={service.theme}
-                  width={300}
-                  height={300}
-                  className='aspect-square w-full object-cover transition-transform group-hover:scale-105'
-                  data-ai-hint='worship service'
-                />
-                <div className='absolute top-2 left-2'>
-                  <Badge className='mr-1'>
-                    {service.date &&
-                      new Date(service.date.toDate()).toLocaleDateString(
-                        'en-US',
-                        {
-                          month: 'short',
-                          day: 'numeric',
-                        }
-                      )}
-                  </Badge>
-                  <Badge variant='secondary' className='bg-card'>
-                    {service.theme}
-                  </Badge>
+        {services?.map((service) => {
+          const isLeader = service.worshipLeaderId === currentUser?.uid;
+          const isInTeam =
+            service.team?.some(
+              (member) => member.memberId === currentUser?.uid
+            ) || false;
+          const isUserInvolved = isLeader || isInTeam;
+
+          return (
+            <Link href={`/services/${service.id}`} key={service.id}>
+              <Card
+                className={cn(
+                  'flex flex-col bg-card shadow-none border-0 h-full group p-1 rounded-3xl transition-all',
+                  !isUserInvolved && 'grayscale hover:grayscale-0'
+                )}
+              >
+                <div className='overflow-hidden rounded-3xl relative'>
+                  <Image
+                    src={service.imageUrl}
+                    alt={service.theme}
+                    width={300}
+                    height={300}
+                    className='aspect-square w-full object-cover transition-transform group-hover:scale-105'
+                    data-ai-hint='worship service'
+                  />
+                  <div className='absolute top-2 left-2'>
+                    <Badge className='mr-1'>
+                      {service.date &&
+                        new Date(service.date.toDate()).toLocaleDateString(
+                          'en-US',
+                          {
+                            month: 'short',
+                            day: 'numeric',
+                          }
+                        )}
+                    </Badge>
+                    <Badge variant='secondary' className='bg-card'>
+                      {service.theme}
+                    </Badge>
+                  </div>
                 </div>
-              </div>
-              <CardContent className='p-2 pt-3'>
-                <div className='flex -space-x-2 overflow-hidden'>
-                  {allUsers
-                    ?.filter((user) =>
-                      service.team?.some(
-                        (teamMember) => teamMember.memberId === user.id
+                <CardContent className='p-2 pt-3'>
+                  <div className='flex -space-x-2 overflow-hidden'>
+                    {allUsers
+                      ?.filter((user) =>
+                        service.team?.some(
+                          (teamMember) => teamMember.memberId === user.id
+                        )
                       )
-                    )
-                    .map((member, idx) => (
-                      <Avatar //
-                        key={idx}
-                        className='inline-block h-6 w-6 rounded-full ring-2 ring-background'
-                      >
-                        <AvatarImage src={member.avatarUrl} alt={member.name} />
-                        <AvatarFallback>
-                          {member?.name?.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+                      .map((member, idx) => (
+                        <Avatar //
+                          key={idx}
+                          className='inline-block h-6 w-6 rounded-full ring-2 ring-background'
+                        >
+                          <AvatarImage
+                            src={member.avatarUrl}
+                            alt={member.name}
+                          />
+                          <AvatarFallback>
+                            {member?.name?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );
