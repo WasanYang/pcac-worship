@@ -174,7 +174,7 @@ export default function AdminPage() {
                       <TableCell>
                         {new Date(service.date.toDate()).toLocaleDateString()}
                       </TableCell>
-                      <TableCell>{service.worshipLeaderName}</TableCell>
+                      {/* <TableCell>{service.worshipLeaderName}</TableCell> */}
                     </TableRow>
                   ))}
                 </TableBody>

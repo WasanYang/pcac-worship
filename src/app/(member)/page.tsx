@@ -150,9 +150,9 @@ export default function Dashboard() {
                             day: 'numeric',
                           })}
                         </p>
-                        <p className='text-sm text-muted-foreground'>
+                        {/* <p className='text-sm text-muted-foreground'>
                           Led by: {service.worshipLeaderName}
-                        </p>
+                        </p> */}
                       </div>
                     </div>
                   </Card>

@@ -44,7 +44,7 @@ export const userApi = createApi({
     getUsers: builder.query<User[], void>({
       async queryFn() {
         try {
-          const { firestore } = getSdks();
+          const { firestore } = getSdks({} as any);
           const usersCollectionRef = collection(firestore, 'users');
           const querySnapshot = await getDocs(usersCollectionRef);
           const users: User[] = [];
@@ -72,7 +72,7 @@ export const userApi = createApi({
     getUserById: builder.query<User, string>({
       async queryFn(uid) {
         try {
-          const { firestore } = getSdks();
+          const { firestore } = getSdks({} as any);
           const userDocRef = doc(firestore, 'users', uid);
           const docSnap = await getDoc(userDocRef);
           if (!docSnap.exists()) {

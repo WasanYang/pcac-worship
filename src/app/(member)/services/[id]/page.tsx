@@ -106,7 +106,7 @@ export default function ServiceDetailPage() {
                 <span>
                   Led by{' '}
                   <span className='font-semibold text-foreground'>
-                    {service.worshipLeaderName}
+                    {/* {service.worshipLeaderName} */}
                   </span>
                 </span>
               </div>
