@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,11 +11,18 @@ import {
   serverTimestamp,
   updateDoc,
 } from 'firebase/firestore';
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from 'firebase/storage';
 import { format } from 'date-fns';
 
-import { useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -40,15 +47,42 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import {
+  CalendarIcon,
+  Check,
+  ChevronsUpDown,
+  Loader2,
+  UploadCloud,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Service } from '@/lib/placeholder-data';
+import { Service, TeamMember } from '@/lib/placeholder-data';
+import { Progress } from '@/components/ui/progress';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import { Badge } from '@/components/ui/badge';
 
 const serviceFormSchema = z.object({
   theme: z.string().min(2, { message: 'Theme must be at least 2 characters.' }),
   date: z.date({ required_error: 'A date is required.' }),
-  worshipLeaderName: z.string().min(2, { message: 'Leader name is required.' }),
+  worshipLeaderId: z
+    .string()
+    .min(1, { message: 'Please select a worship leader.' }),
+  team: z.array(z.string()).optional(),
   imageUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional(),
+  imageFile: z.instanceof(File).optional(),
 });
 
 type ServiceFormValues = z.infer<typeof serviceFormSchema>;
@@ -67,6 +101,15 @@ export function ServiceFormDialog({
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<TeamMember[]>([]);
+
+  const teamMembersQuery = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'team_members') : null),
+    [firestore]
+  );
+  const { data: teamMembers } = useCollection<TeamMember>(teamMembersQuery);
 
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceFormSchema),
@@ -77,30 +120,85 @@ export function ServiceFormDialog({
       if (service) {
         form.reset({
           ...service,
-          date: new Date(service.date),
+          date: new Date(service.date.toDate()),
+          worshipLeaderId: service.worshipLeaderId || '',
           imageUrl: service.imageUrl || '',
+          imageFile: undefined,
+          team: service.team?.map((t) => t.memberId) || [],
         });
+        if (teamMembers && service.team) {
+          const preselectedTeam = teamMembers.filter((user) =>
+            service.team?.some((teamMember) => teamMember.memberId === user.id)
+          );
+          setSelectedTeam(preselectedTeam);
+        }
       } else {
         form.reset({
           theme: '',
           date: new Date(),
-          worshipLeaderName: '',
+          worshipLeaderId: '',
           imageUrl: '',
+          imageFile: undefined,
+          team: [],
         });
+        setSelectedTeam([]);
       }
+      setImageFile(null);
+      setUploadProgress(null);
     }
   }, [open, service, form]);
 
   const onSubmit = async (values: ServiceFormValues) => {
     if (!firestore) return;
     setIsSubmitting(true);
+    setUploadProgress(0);
+
+    const worshipLeader = teamMembers?.find(
+      (m) => m.id === values.worshipLeaderId
+    );
+    const worshipLeaderName = worshipLeader?.name || 'N/A';
+
+    let finalImageUrl = service?.imageUrl || '';
+
     try {
+      // 1. If a new image file is selected, upload it
+      if (imageFile) {
+        const storage = getStorage();
+        const filePath = `services/${Date.now()}_${imageFile.name}`;
+        const storageRef = ref(storage, filePath);
+        const uploadTask = uploadBytesResumable(storageRef, imageFile);
+
+        finalImageUrl = await new Promise((resolve, reject) => {
+          uploadTask.on(
+            'state_changed',
+            (snapshot) => {
+              const progress =
+                (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              setUploadProgress(progress);
+            },
+            (error) => {
+              console.error('Upload failed:', error);
+              reject(error);
+            },
+            async () => {
+              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+              resolve(downloadURL);
+            }
+          );
+        });
+      }
+
       if (service) {
         const serviceRef = doc(firestore, 'services', service.id);
-        await updateDoc(serviceRef, {
+        const { imageFile, ...rest } = {
           ...values,
+          imageUrl: finalImageUrl,
+          team: selectedTeam.map((member) => ({
+            memberId: member.id,
+          })),
           updatedAt: serverTimestamp(),
-        });
+        };
+        await updateDoc(serviceRef, rest);
         toast({
           title: 'Success',
           description: 'Service updated successfully.',
@@ -108,6 +206,12 @@ export function ServiceFormDialog({
       } else {
         await addDoc(collection(firestore, 'services'), {
           ...values,
+          imageUrl: finalImageUrl,
+          worshipLeaderName, // Save the name for easy display
+          team: selectedTeam.map((member) => ({
+            memberId: member.id,
+            role: member.role,
+          })),
           createdAt: serverTimestamp(),
         });
         toast({
@@ -125,6 +229,7 @@ export function ServiceFormDialog({
       });
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(null);
     }
   };
 
@@ -146,6 +251,64 @@ export function ServiceFormDialog({
             onSubmit={form.handleSubmit(onSubmit)}
             className='space-y-4 py-4'
           >
+            <FormField
+              control={form.control}
+              name='imageUrl'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Service Image</FormLabel>
+                  <div className='flex flex-col items-center gap-4'>
+                    {(field.value || imageFile) && (
+                      <div className='relative w-full h-40 rounded-md overflow-hidden border'>
+                        <Image
+                          src={
+                            imageFile
+                              ? URL.createObjectURL(imageFile)
+                              : field.value || ''
+                          }
+                          alt='Service Image Preview'
+                          fill
+                          className='object-cover'
+                        />
+                      </div>
+                    )}
+                    <FormControl>
+                      <div className='w-full'>
+                        <label
+                          htmlFor='image-upload'
+                          className='flex items-center justify-center w-full px-4 py-2 border-2 border-dashed rounded-md cursor-pointer hover:border-primary hover:bg-accent'
+                        >
+                          <UploadCloud className='w-5 h-5 mr-2' />
+                          <span>
+                            {imageFile ? imageFile.name : 'Choose an image'}
+                          </span>
+                        </label>
+                        <Input
+                          id='image-upload'
+                          type='file'
+                          className='hidden'
+                          accept='image/*'
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setImageFile(file);
+                            }
+                          }}
+                        />
+                      </div>
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {uploadProgress !== null && (
+              <div className='space-y-1'>
+                <p className='text-sm text-muted-foreground'>Uploading...</p>
+                <Progress value={uploadProgress} className='w-full' />
+              </div>
+            )}
             <FormField
               control={form.control}
               name='theme'
@@ -199,33 +362,117 @@ export function ServiceFormDialog({
             />
             <FormField
               control={form.control}
-              name='worshipLeaderName'
+              name='worshipLeaderId'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Worship Leader</FormLabel>
-                  <FormControl>
-                    <Input placeholder='Leader Name' {...field} />
-                  </FormControl>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder='Select a worship leader' />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {teamMembers?.map((member) => (
+                        <SelectItem key={member.id} value={member.id}>
+                          {member.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
-              name='imageUrl'
+              name='team'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Image URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder='https://example.com/image.jpg'
-                      {...field}
-                    />
-                  </FormControl>
+                  <FormLabel>Team Members</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant='outline'
+                          role='combobox'
+                          className={cn(
+                            'w-full justify-between h-auto min-h-10',
+                            selectedTeam.length === 0 && 'text-muted-foreground'
+                          )}
+                        >
+                          <div className='flex flex-wrap gap-1'>
+                            {selectedTeam.length > 0
+                              ? selectedTeam.map((member) => (
+                                  <Badge
+                                    variant='secondary'
+                                    key={member.id}
+                                    className='mr-1'
+                                  >
+                                    {member.name}
+                                  </Badge>
+                                ))
+                              : 'Select team members'}
+                          </div>
+                          <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className='w-[--radix-popover-trigger-width] p-0'>
+                      <Command>
+                        <CommandInput placeholder='Search members...' />
+                        <CommandList>
+                          <CommandEmpty>No members found.</CommandEmpty>
+                          <CommandGroup>
+                            {teamMembers?.map((member) => {
+                              const isSelected = selectedTeam.some(
+                                (s) => s.id === member.id
+                              );
+                              return (
+                                <CommandItem
+                                  key={member.id}
+                                  onSelect={() => {
+                                    let newSelectedTeam;
+                                    if (isSelected) {
+                                      newSelectedTeam = selectedTeam.filter(
+                                        (s) => s.id !== member.id
+                                      );
+                                    } else {
+                                      newSelectedTeam = [
+                                        ...selectedTeam,
+                                        member,
+                                      ];
+                                    }
+                                    setSelectedTeam(newSelectedTeam);
+                                    field.onChange(
+                                      newSelectedTeam.map((m) => m.id)
+                                    );
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      'mr-2 h-4 w-4',
+                                      isSelected ? 'opacity-100' : 'opacity-0'
+                                    )}
+                                  />
+                                  {member.name}
+                                </CommandItem>
+                              );
+                            })}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <DialogFooter>
               <Button
                 type='submit'

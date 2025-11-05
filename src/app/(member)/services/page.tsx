@@ -1,22 +1,25 @@
 'use client';
 
 import Image from 'next/image';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { useI18n } from '@/providers/i18n-provider';
 import Link from 'next/link';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
-import type { Service } from '@/lib/placeholder-data';
+import {
+  useAuth,
+  useCollection,
+  useFirestore,
+  useMemoFirebase,
+} from '@/firebase';
+import { collection, query, where, documentId } from 'firebase/firestore';
+import type { Service, TeamMember } from '@/lib/placeholder-data';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useMemo } from 'react';
+import { cn } from '@/lib/utils';
 
 export default function ServicesPage() {
   const { t } = useI18n();
+  const { currentUser } = useAuth();
   const firestore = useFirestore();
   const servicesQuery = useMemoFirebase(
     () => (firestore ? collection(firestore, 'services') : null),
@@ -24,22 +27,29 @@ export default function ServicesPage() {
   );
   const { data: services, isLoading } = useCollection<Service>(servicesQuery);
 
+  const uniqueTeamMemberIds = useMemo(() => {
+    if (!services) return [];
+    const allIds = services.flatMap(
+      (service) => service.team?.map((member) => member.memberId) || []
+    );
+    return [...new Set(allIds)];
+  }, [services]);
+
+  const teamMembersQuery = useMemoFirebase(
+    () =>
+      firestore && uniqueTeamMemberIds.length > 0
+        ? query(
+            collection(firestore, 'team_members'),
+            where(documentId(), 'in', uniqueTeamMemberIds)
+          )
+        : null,
+    [firestore, uniqueTeamMemberIds]
+  );
+  const { data: allUsers, isLoading: isLoadingTeam } =
+    useCollection<TeamMember>(teamMembersQuery);
+
   return (
     <div className='flex flex-col gap-8'>
-      <div className='flex items-center justify-between'>
-        <div>
-          <h1 className='text-2xl md:text-3xl font-bold tracking-tight'>
-            {t('services')}
-          </h1>
-          <p className='text-muted-foreground'>{t('servicesDesc')}</p>
-        </div>
-        <Button asChild>
-          <Link href='/services/create'>
-            <PlusCircle className='mr-2 h-4 w-4' /> {t('createService')}
-          </Link>
-        </Button>
-      </div>
-
       {isLoading && (
         <div className='grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4'>
           {[...Array(8)].map((_, i) => (
@@ -64,8 +74,8 @@ export default function ServicesPage() {
       <div className='grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4'>
         {services?.map((service) => (
           <Link href={`/services/${service.id}`} key={service.id}>
-            <Card className='flex flex-col bg-transparent shadow-none border-0 h-full group'>
-              <div className='overflow-hidden rounded-md'>
+            <Card className='flex flex-col bg-card shadow-none border-0 h-full group p-1 rounded-3xl'>
+              <div className='overflow-hidden rounded-3xl relative'>
                 <Image
                   src={service.imageUrl}
                   alt={service.theme}
@@ -74,16 +84,43 @@ export default function ServicesPage() {
                   className='aspect-square w-full object-cover transition-transform group-hover:scale-105'
                   data-ai-hint='worship service'
                 />
+                <div className='absolute top-2 left-2'>
+                  <Badge className='mr-1'>
+                    {service.date &&
+                      new Date(service.date.toDate()).toLocaleDateString(
+                        'en-US',
+                        {
+                          month: 'short',
+                          day: 'numeric',
+                        }
+                      )}
+                  </Badge>
+                  <Badge variant='secondary' className='bg-card'>
+                    {service.theme}
+                  </Badge>
+                </div>
               </div>
-              <CardHeader className='p-2 pt-4'>
-                <CardTitle className='text-sm md:text-base truncate'>
-                  {service.theme}
-                </CardTitle>
-                <CardDescription className='text-xs'>
-                  {service.date &&
-                    new Date(service.date as Date).toLocaleDateString()}
-                </CardDescription>
-              </CardHeader>
+              <CardContent className='p-2 pt-3'>
+                <div className='flex -space-x-2 overflow-hidden'>
+                  {allUsers
+                    ?.filter((user) =>
+                      service.team?.some(
+                        (teamMember) => teamMember.memberId === user.id
+                      )
+                    )
+                    .map((member, idx) => (
+                      <Avatar //
+                        key={idx}
+                        className='inline-block h-6 w-6 rounded-full ring-2 ring-background'
+                      >
+                        <AvatarImage src={member.avatarUrl} alt={member.name} />
+                        <AvatarFallback>
+                          {member?.name?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                    ))}
+                </div>
+              </CardContent>
             </Card>
           </Link>
         ))}

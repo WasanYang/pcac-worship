@@ -1,16 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link'; // SidebarNav is not used anymore
 import { usePathname, useRouter } from 'next/navigation'; // SidebarProvider and Sidebar are not used anymore
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/providers/i18n-provider';
-import Image from 'next/image';
 import { placeholderImages } from '@/lib/placeholder-images.json';
-import { UserNav } from './user-nav';
-import { Music } from 'lucide-react';
-import { Carousel, CarouselContent, CarouselItem } from '../ui/carousel';
 import { useAuth, useFirestore } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { TopBar } from './top-bar';
@@ -68,7 +63,7 @@ export default function MainLayout({
       <div className='mx-auto flex max-w-3xl flex-col'>
         <TopBar />
         <div className='flex w-full flex-col flex-1'>
-          {bannerImages.length > 0 && (
+          {/* {bannerImages.length > 0 && (
             <div className='w-full p-4 pb-0 md:p-6 md:pb-0'>
               <Carousel
                 opts={{
@@ -104,7 +99,7 @@ export default function MainLayout({
                 </CarouselContent>
               </Carousel>
             </div>
-          )}
+          )} */}
           <main
             className={cn(
               'flex-1 flex flex-col gap-4 p-4 lg:gap-6 lg:p-6 h-full',

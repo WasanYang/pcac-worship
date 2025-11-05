@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/lib/store';
 
 interface TopBarProps {
   children?: React.ReactNode;
@@ -19,6 +21,9 @@ interface TopBarProps {
 }
 
 export function TopBar({ children, notificationCount = 1 }: TopBarProps) {
+  const { title, subTitle } = useSelector(
+    (state: RootState) => state.layout.header
+  );
   // TODO: Fetch real notifications
   const notifications = [
     { id: 1, message: 'You have been assigned to the service on Sunday.' },
@@ -28,8 +33,11 @@ export function TopBar({ children, notificationCount = 1 }: TopBarProps) {
 
   return (
     <header className='sticky top-0 z-30 flex h-14 w-full items-center justify-between gap-4  bg-background px-4 lg:h-[60px]'>
-      <div className='flex-1'>{children}</div>
-
+      <div className='flex-1'>
+        <h1 className='text-2xl md:text-3xl font-bold tracking-tight'>
+          {title}
+        </h1>
+      </div>
       <div className='flex items-center gap-4'>
         <Sheet>
           <SheetTrigger asChild>
@@ -40,7 +48,7 @@ export function TopBar({ children, notificationCount = 1 }: TopBarProps) {
             >
               <Bell className='h-5 w-5' />
               {notificationCount > 0 && (
-                <Badge className='absolute top-1 right-2 h-2 w-2 rounded-full bg-red-500 p-0'>
+                <Badge className='absolute top-2 right-[9px] h-[5px] w-[5px] rounded-full bg-red-400 p-0'>
                   {/* Dot indicator */}
                 </Badge>
               )}

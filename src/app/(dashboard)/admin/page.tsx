@@ -96,8 +96,12 @@ export default function AdminPage() {
     if (!allServices) return [];
     const now = new Date();
     return [...allServices]
-      .filter((service) => new Date(service.date) >= now)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .filter((service) => new Date(service.date.toDate()) >= now)
+      .sort(
+        (a, b) =>
+          new Date(a.date.toDate()).getTime() -
+          new Date(b.date.toDate()).getTime()
+      )
       .slice(0, 5);
   }, [allServices]);
 
@@ -168,7 +172,7 @@ export default function AdminPage() {
                         {service.theme}
                       </TableCell>
                       <TableCell>
-                        {new Date(service.date).toLocaleDateString()}
+                        {new Date(service.date.toDate()).toLocaleDateString()}
                       </TableCell>
                       <TableCell>{service.worshipLeaderName}</TableCell>
                     </TableRow>

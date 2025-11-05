@@ -47,7 +47,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Loader2, MoreHorizontal, PlusCircle } from 'lucide-react';
-import { Service } from '@/lib/placeholder-data';
+import { Service, TeamMember } from '@/lib/placeholder-data';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -69,6 +69,11 @@ export default function AdminServicesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const teamMembersQuery = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'team_members') : null),
+    [firestore]
+  );
+  const { data: teamMembers } = useCollection<TeamMember>(teamMembersQuery);
 
   const servicesCollection = useMemoFirebase(
     () => (firestore ? collection(firestore, 'services') : null),
@@ -84,7 +89,7 @@ export default function AdminServicesPage() {
   const sortedServices = useMemo(() => {
     if (!allServices) return [];
     return [...allServices].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      (a, b) => b.date.toDate().getTime() - a.date.toDate().getTime()
     );
   }, [allServices]);
 
@@ -101,8 +106,8 @@ export default function AdminServicesPage() {
     setEditingService(service);
     if (service) {
       form.reset({
-        ...service,
-        date: new Date(service.date),
+        ...service, // Assuming service.date is a Firebase Timestamp
+        date: service.date.toDate(),
       });
     } else {
       form.reset({
@@ -223,9 +228,15 @@ export default function AdminServicesPage() {
                       {service.theme}
                     </TableCell>
                     <TableCell>
-                      {new Date(service.date).toLocaleDateString()}
+                      {service.date.toDate().toLocaleDateString()}
                     </TableCell>
-                    <TableCell>{service.worshipLeaderName}</TableCell>
+                    <TableCell>
+                      {
+                        teamMembers?.filter(
+                          (m) => m.id === service.worshipLeaderId
+                        )[0]?.name
+                      }
+                    </TableCell>
                     <TableCell className='text-right'>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

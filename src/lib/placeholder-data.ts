@@ -20,11 +20,13 @@ export type Service = {
   id: string;
   theme: string;
   sermonTheme: string;
-  date: Date;
+  /**
+   * firebase timestamp
+   */
+  date: Timestamp;
   worshipLeaderId: string;
-  worshipLeaderName: string;
   imageUrl: string;
-  team: { role: string; member: string | null }[];
+  team: { memberId: string }[];
   setlist: Song[];
 };
 
