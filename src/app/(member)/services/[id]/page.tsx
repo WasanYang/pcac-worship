@@ -77,7 +77,7 @@ export default function ServiceDetailPage() {
           <Card className='overflow-hidden'>
             <div className='relative w-full h-60'>
               <Image
-                src={service.imageUrl}
+                src={service.imageUrl || '/placeholder.svg'}
                 alt={service.theme}
                 fill
                 className='object-cover'
