@@ -25,7 +25,7 @@ export type Service = {
    */
   date: Timestamp;
   worshipLeaderId: string;
-  imageUrl: string;
+  imageUrl?: string;
   team: { memberId: string }[];
   setlist: Song[];
 };

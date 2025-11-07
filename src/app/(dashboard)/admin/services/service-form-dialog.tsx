@@ -71,6 +71,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from '@/components/ui/command';
 import { Badge } from '@/components/ui/badge';
 
@@ -81,7 +82,7 @@ const serviceFormSchema = z.object({
     .string()
     .min(1, { message: 'Please select a worship leader.' }),
   team: z.array(z.string()).optional(),
-  imageUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional(),
+  imageUrl: z.string().optional(),
   imageFile: z.instanceof(File).optional(),
 });
 
@@ -153,12 +154,7 @@ export function ServiceFormDialog({
     setIsSubmitting(true);
     setUploadProgress(0);
 
-    const worshipLeader = teamMembers?.find(
-      (m) => m.id === values.worshipLeaderId
-    );
-    const worshipLeaderName = worshipLeader?.name || 'N/A';
-
-    let finalImageUrl = service?.imageUrl || '';
+    let finalImageUrl = values.imageUrl || service?.imageUrl || '';
 
     try {
       // 1. If a new image file is selected, upload it
@@ -198,19 +194,26 @@ export function ServiceFormDialog({
           })),
           updatedAt: serverTimestamp(),
         };
+        console.log(rest);
         await updateDoc(serviceRef, rest);
         toast({
           title: 'Success',
           description: 'Service updated successfully.',
         });
       } else {
-        await addDoc(collection(firestore, 'services'), {
+        const { imageFile, ...rest } = {
           ...values,
           imageUrl: finalImageUrl,
-          worshipLeaderName, // Save the name for easy display
           team: selectedTeam.map((member) => ({
             memberId: member.id,
-            role: member.role,
+          })),
+          updatedAt: serverTimestamp(),
+        };
+        await addDoc(collection(firestore, 'services'), {
+          ...rest,
+          imageUrl: finalImageUrl, // Use the final image URL
+          team: selectedTeam.map((member) => ({
+            memberId: member.id,
           })),
           createdAt: serverTimestamp(),
         });
@@ -256,6 +259,7 @@ export function ServiceFormDialog({
               name='imageUrl'
               render={({ field }) => (
                 <FormItem>
+                  {/* Image Preview */}
                   <FormLabel>Service Image</FormLabel>
                   <div className='flex flex-col items-center gap-4'>
                     {(field.value || imageFile) && (
@@ -293,8 +297,25 @@ export function ServiceFormDialog({
                             if (file) {
                               setImageFile(file);
                             }
+                            // Clear imageUrl if a new file is selected,
+                            // as the new file will be uploaded.
+                            form.setValue('imageUrl', '');
                           }}
                         />
+                        {/* Button to remove existing image */}
+                        {(field.value || imageFile) && (
+                          <Button
+                            variant='outline'
+                            className='mt-2 w-full'
+                            onClick={() => {
+                              field.onChange(''); // Clear the imageUrl in the form
+                              setImageFile(null); // Clear the selected file
+                              setUploadProgress(null); // Reset upload progress
+                            }}
+                          >
+                            Remove Image
+                          </Button>
+                        )}
                       </div>
                     </FormControl>
                   </div>
@@ -303,11 +324,16 @@ export function ServiceFormDialog({
               )}
             />
 
-            {uploadProgress !== null && (
+            {uploadProgress !== null && uploadProgress < 100 && (
               <div className='space-y-1'>
-                <p className='text-sm text-muted-foreground'>Uploading...</p>
+                <p className='text-sm text-muted-foreground'>
+                  Uploading... {uploadProgress.toFixed(0)}%
+                </p>
                 <Progress value={uploadProgress} className='w-full' />
               </div>
+            )}
+            {uploadProgress === 100 && (
+              <p className='text-sm text-green-600'>Upload complete!</p>
             )}
             <FormField
               control={form.control}
@@ -476,7 +502,10 @@ export function ServiceFormDialog({
             <DialogFooter>
               <Button
                 type='submit'
-                disabled={isSubmitting}
+                disabled={
+                  isSubmitting ||
+                  (uploadProgress !== null && uploadProgress < 100)
+                }
                 className='w-full sm:w-auto'
               >
                 {isSubmitting && (

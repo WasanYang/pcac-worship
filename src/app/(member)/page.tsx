@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { Card, CardContent } from '@/components/ui/card';
+import { useState, useEffect, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { HeartHandshake, CalendarDays, Target, Calendar } from 'lucide-react';
 import { useI18n } from '@/providers/i18n-provider';
 import { useUser, useDoc, useCollection, useMemoFirebase } from '@/firebase';
-import { doc, collection, query, where, Timestamp } from 'firebase/firestore';
+import { doc, collection, query, where, orderBy } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import type {
   Service,
@@ -16,6 +15,7 @@ import type {
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
+import { ServiceCard } from '@/components/service-card';
 
 export default function Dashboard() {
   const { t } = useI18n();
@@ -29,15 +29,47 @@ export default function Dashboard() {
   const { data: teamMember, isLoading: isLoadingData } =
     useDoc<TeamMember>(teamMemberRef);
 
-  const servicesQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    const ret = query(collection(firestore, 'services'));
-    return ret;
-  }, [firestore]);
+  const servicesQuery = useMemoFirebase(
+    () =>
+      firestore
+        ? query(
+            collection(firestore, 'services'),
+            where('date', '>=', new Date()),
+            orderBy('date', 'desc')
+          )
+        : null,
+    [firestore]
+  );
 
   const { data: servicesFromSchedules, isLoading } =
     useCollection<Service>(servicesQuery);
 
+  const teamMemberIds = useMemo(() => {
+    if (!servicesFromSchedules) return [];
+    return [
+      ...new Set(
+        servicesFromSchedules.flatMap((s) => [
+          s.worshipLeaderId,
+          ...(s.team?.map((tm) => tm.memberId) || []),
+        ])
+      ),
+    ];
+  }, [servicesFromSchedules]);
+
+  const teamMembersQuery = useMemoFirebase(
+    () =>
+      firestore && teamMemberIds.length > 0
+        ? query(
+            collection(firestore, 'team_members'),
+            where('id', 'in', teamMemberIds)
+          )
+        : null,
+    [firestore, teamMemberIds]
+  );
+  useEffect(() => {
+    console.log(teamMemberIds);
+  }, [teamMemberIds]);
+  const { data: teamMembers } = useCollection<TeamMember>(teamMembersQuery);
   const [upcomingServices, setUpcomingServices] = useState<Service[]>();
 
   useEffect(() => {
@@ -45,14 +77,7 @@ export default function Dashboard() {
       setUpcomingServices(undefined);
       return;
     }
-    const sorted = [...servicesFromSchedules].sort((a, b) => {
-      const dateA =
-        a.date instanceof Timestamp ? a.date.toDate() : new Date(a.date);
-      const dateB =
-        b.date instanceof Timestamp ? b.date.toDate() : new Date(b.date);
-      return dateA.getTime() - dateB.getTime();
-    });
-    setUpcomingServices(sorted);
+    setUpcomingServices(servicesFromSchedules); // Data is now pre-sorted by Firestore
   }, [servicesFromSchedules]);
 
   const accountabilityGroupsQuery = useMemoFirebase(
@@ -65,32 +90,25 @@ export default function Dashboard() {
         : null,
     [firestore, user]
   );
-  const { data: accountabilityGroups } = useCollection<AccountabilityGroup>(
-    accountabilityGroupsQuery
-  );
+  const {
+    data: accountabilityGroups,
+    isLoading: isLoadingAccountabilityGroups,
+  } = useCollection<AccountabilityGroup>(accountabilityGroupsQuery);
 
   const currentAccountabilityGroup = accountabilityGroups?.[0];
   const groupLeaderRef = useMemoFirebase(
     () =>
-      currentAccountabilityGroup
+      // Only fetch group leader if accountability group is loaded and available
+      !isLoadingAccountabilityGroups && currentAccountabilityGroup
         ? doc(firestore, 'team_members', currentAccountabilityGroup.leaderId)
         : null,
     [firestore, currentAccountabilityGroup]
   );
-  const { data: groupLeader } = useDoc<TeamMember>(groupLeaderRef);
+  const { data: groupLeader, isLoading: isLoadingGroupLeader } =
+    useDoc<TeamMember>(groupLeaderRef);
 
   return (
     <div className='flex flex-col gap-8'>
-      <div className='mb-2'>
-        <h1 className='text-2xl md:text-3xl font-bold tracking-tight'>
-          {t('dashboard')}
-        </h1>
-        <p className='text-muted-foreground'>
-          Welcome back, {teamMember?.name || user?.displayName || 'User'}!
-          Here's your personalized dashboard.
-        </p>
-      </div>
-
       <div className='grid grid-cols-1 gap-8 lg:grid-cols-3'>
         {/* Main Column */}
         <div className='lg:col-span-2 flex flex-col gap-6'>
@@ -114,49 +132,30 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : upcomingServices && upcomingServices.length > 0 ? (
-              <div className='grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4'>
-                {upcomingServices.slice(0, 5).map((service) => (
-                  <Card
-                    key={service.id}
-                    className='overflow-hidden flex flex-col'
-                  >
-                    <div className='relative w-full h-24 md:h-40 flex-shrink-0'>
-                      <Link href={`/services/${service.id}`}>
-                        <Image
-                          src={service.imageUrl}
-                          alt={service.theme}
-                          fill
-                          className='object-cover'
-                          data-ai-hint='worship service'
-                        />
-                      </Link>
-                    </div>
-                    <div className='p-3 md:p-4 flex flex-col justify-between flex-grow'>
-                      <div>
-                        <Link href={`/services/${service.id}`}>
-                          <h3 className='text-sm md:text-lg font-bold truncate hover:underline'>
-                            {service.theme}
-                          </h3>
-                        </Link>
-                        <p className='text-sm text-muted-foreground'>
-                          {new Date(
-                            service.date instanceof Timestamp
-                              ? service.date.toDate()
-                              : (service.date as string)
-                          ).toLocaleDateString(undefined, {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          })}
-                        </p>
-                        {/* <p className='text-sm text-muted-foreground'>
-                          Led by: {service.worshipLeaderName}
-                        </p> */}
-                      </div>
-                    </div>
-                  </Card>
-                ))}
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+                {upcomingServices.map((service) => {
+                  const isLeader = service.worshipLeaderId === user?.uid;
+                  const isTeamMember =
+                    service.team?.some((tm) => tm.memberId === user?.uid) ||
+                    false;
+                  const serviceTeamMembers = teamMembers?.filter(
+                    (member) =>
+                      service.team?.some((tm) => tm.memberId === member.id) ||
+                      service.worshipLeaderId === member.id
+                  );
+                  const isOver = service.date.toDate() < new Date();
+
+                  const isUserInvolved = (isLeader || isTeamMember) && !isOver;
+                  return (
+                    <Link href={`/services/${service.id}`} key={service.id}>
+                      <ServiceCard
+                        service={service}
+                        isUserInvolved={isUserInvolved}
+                        teamsMembers={serviceTeamMembers}
+                      />
+                    </Link>
+                  );
+                })}
               </div>
             ) : (
               <div className='flex flex-col items-center justify-center text-center p-10 border-2 border-dashed rounded-lg bg-muted/50'>
@@ -172,74 +171,74 @@ export default function Dashboard() {
 
         {/* Side Column */}
         <div className='lg:col-span-1'>
-          <Card className='sticky top-6'>
-            <CardContent className='space-y-6'>
-              <div>
-                <div className='flex items-center gap-2 mb-4'>
-                  <Target className='h-5 w-5 text-muted-foreground' />
-                  <h4 className='font-semibold text-lg'>My Skills</h4>
-                </div>
+          <Card className='sticky top-6 border-none shadow-lg'>
+            <CardHeader>
+              <CardTitle className='flex items-center gap-2 text-lg'>
+                <Target className='h-5 w-5' />
+                My Skills
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoadingData ? ( // Loading state
                 <div className='space-y-4'>
-                  {isLoadingData ? ( // Loading state
-                    <div className='space-y-4'>
-                      {[...Array(2)].map((_, i) => (
-                        <div key={i} className='space-y-2'>
-                          <div className='h-4 bg-muted rounded w-3/4 animate-pulse'></div>
-                          <div className='h-2 bg-muted rounded w-full animate-pulse'></div>
-                        </div>
-                      ))}
+                  {[...Array(2)].map((_, i) => (
+                    <div key={i} className='space-y-2'>
+                      <div className='h-4 bg-muted rounded w-3/4 animate-pulse'></div>
+                      <div className='h-2 bg-muted rounded w-full animate-pulse'></div>
                     </div>
-                  ) : teamMember && teamMember.skills?.length > 0 ? ( // Data loaded and has skills
-                    teamMember.skills.map((skill) => (
-                      <div key={skill.skill} className='space-y-1'>
-                        <div className='flex justify-between items-center'>
-                          <span className='text-sm font-medium'>
-                            {skill.skill}
-                          </span>
-                          <span className='text-xs text-muted-foreground'>
-                            {skill.progress}%
-                          </span>
-                        </div>
-                        <Progress value={skill.progress} className='h-2' />
-                      </div>
-                    ))
-                  ) : (
-                    // No skills or data failed to load
-                    <p className='text-sm text-muted-foreground italic'>
-                      No skills are being tracked currently.
-                    </p>
-                  )}
+                  ))}
                 </div>
-              </div>
-
-              <Separator />
-
-              {/* Accountability Group Section */}
-              <div>
-                <div className='flex items-center gap-2 mb-4'>
-                  <HeartHandshake className='h-5 w-5 text-muted-foreground' />
-                  <h4 className='font-semibold text-lg'>
-                    Accountability Group
-                  </h4>
-                </div>
-                {currentAccountabilityGroup ? (
-                  <div className='space-y-2'>
-                    <p className='font-semibold'>
-                      {currentAccountabilityGroup.name}
-                    </p>
-                    <p className='text-sm text-muted-foreground'>
-                      Led by:{' '}
-                      {groupLeader?.name ||
-                        currentAccountabilityGroup.leaderName ||
-                        '...'}
-                    </p>
+              ) : teamMember && teamMember.skills?.length > 0 ? ( // Data loaded and has skills
+                teamMember.skills.map((skill) => (
+                  <div key={skill.skill} className='space-y-1'>
+                    <div className='flex justify-between items-center'>
+                      <span className='text-sm font-medium'>{skill.skill}</span>
+                      <span className='text-xs text-muted-foreground'>
+                        {skill.progress}%
+                      </span>
+                    </div>
+                    <Progress value={skill.progress} className='h-2' />
                   </div>
-                ) : (
-                  <p className='text-sm text-muted-foreground'>
-                    You are not in any accountability group yet.
+                ))
+              ) : (
+                // No skills or data failed to load
+                <p className='text-sm text-muted-foreground italic'>
+                  No skills are being tracked currently.
+                </p>
+              )}
+            </CardContent>
+
+            <Separator className='my-4' />
+
+            <CardHeader>
+              <CardTitle className='flex items-center gap-2 text-lg'>
+                <HeartHandshake className='h-5 w-5' />
+                Accountability Group
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoadingAccountabilityGroups || isLoadingGroupLeader ? (
+                <div className='space-y-2'>
+                  <div className='h-4 bg-muted rounded w-3/4 animate-pulse'></div>
+                  <div className='h-3 bg-muted rounded w-1/2 animate-pulse'></div>
+                </div>
+              ) : currentAccountabilityGroup ? (
+                <div className='space-y-2'>
+                  <p className='font-semibold'>
+                    {currentAccountabilityGroup.name}
                   </p>
-                )}
-              </div>
+                  <p className='text-sm text-muted-foreground'>
+                    Led by:{' '}
+                    {groupLeader?.name ||
+                      currentAccountabilityGroup.leaderName ||
+                      '...'}
+                  </p>
+                </div>
+              ) : (
+                <p className='text-sm text-muted-foreground'>
+                  You are not in any accountability group yet.
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
