@@ -1,9 +1,16 @@
 'use client';
 
+import { useI18n } from '@/providers/i18n-provider';
+import { useMemo } from 'react';
 import { useParams } from 'next/navigation';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, Timestamp } from 'firebase/firestore';
-import type { Service } from '@/lib/placeholder-data';
+import {
+  useFirestore,
+  useDoc,
+  useMemoFirebase,
+  useCollection,
+} from '@/firebase';
+import { doc, Timestamp, collection, query, where } from 'firebase/firestore';
+import type { Service, TeamMember, Song } from '@/lib/placeholder-data';
 import {
   Card,
   CardContent,
@@ -12,18 +19,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  ArrowLeft,
-  Calendar,
-  User,
-  ListMusic,
-  Users,
-  PlusCircle,
-} from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ArrowLeft, Calendar, User, ListMusic, Users } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
 export default function ServiceDetailPage() {
+  const { t, locale } = useI18n();
   const params = useParams();
   const serviceId = params.id as string;
 
@@ -33,7 +35,52 @@ export default function ServiceDetailPage() {
       firestore && serviceId ? doc(firestore, 'services', serviceId) : null,
     [firestore, serviceId]
   );
-  const { data: service, isLoading } = useDoc<Service>(serviceRef);
+  const { data: service, isLoading: isLoadingService } =
+    useDoc<Service>(serviceRef);
+
+  const teamMemberIds = useMemo(() => {
+    if (!service) return [];
+    const ids = new Set<string>();
+    if (service.worshipLeaderId) {
+      ids.add(service.worshipLeaderId);
+    }
+    service.teams?.forEach((member) => ids.add(member));
+    return Array.from(ids);
+  }, [service]);
+
+  const songIds = useMemo(() => {
+    if (!service || !service.songs) return [];
+    return service.songs.map((song) => song);
+  }, [service]);
+
+  const { data: teamMembers, isLoading: isLoadingTeam } =
+    useCollection<TeamMember>(
+      useMemoFirebase(
+        () =>
+          firestore && teamMemberIds.length > 0
+            ? query(
+                collection(firestore, 'team_members'),
+                where('id', 'in', teamMemberIds)
+              )
+            : null,
+        [firestore, teamMemberIds]
+      )
+    );
+
+  const { data: songs, isLoading: isLoadingSongs } = useCollection<Song>(
+    useMemoFirebase(
+      () =>
+        firestore && songIds.length > 0
+          ? query(collection(firestore, 'songs'), where('id', 'in', songIds))
+          : null,
+      [firestore, songIds]
+    )
+  );
+
+  const worshipLeader = teamMembers?.find(
+    (m) => m.id === service?.worshipLeaderId
+  );
+  const isLoading = isLoadingService || isLoadingTeam || isLoadingSongs;
 
   if (isLoading) {
     return (
@@ -46,12 +93,12 @@ export default function ServiceDetailPage() {
   if (!service) {
     return (
       <div className='flex flex-col items-center justify-center text-center gap-4'>
-        <h2 className='text-2xl font-semibold'>Service Not Found</h2>
-        <p>The service you are looking for does not exist.</p>
+        <h2 className='text-2xl font-semibold'>{t('serviceNotFound')}</h2>
+        <p>{t('serviceNotFoundDesc')}</p>
         <Button asChild>
           <Link href='/services'>
             <ArrowLeft className='mr-2 h-4 w-4' />
-            Back to Services
+            {t('backToServices')}
           </Link>
         </Button>
       </div>
@@ -68,7 +115,7 @@ export default function ServiceDetailPage() {
       <Button variant='outline' size='sm' className='self-start' asChild>
         <Link href='/services'>
           <ArrowLeft className='mr-2 h-4 w-4' />
-          Back to Services
+          {t('backToServices')}
         </Link>
       </Button>
 
@@ -93,7 +140,7 @@ export default function ServiceDetailPage() {
               <div className='flex items-center gap-2 text-muted-foreground'>
                 <Calendar className='h-4 w-4' />
                 <span>
-                  {serviceDate.toLocaleDateString(undefined, {
+                  {serviceDate.toLocaleDateString(locale, {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
@@ -104,9 +151,9 @@ export default function ServiceDetailPage() {
               <div className='flex items-center gap-2 text-muted-foreground'>
                 <User className='h-4 w-4' />
                 <span>
-                  Led by{' '}
+                  {t('ledBy')}{' '}
                   <span className='font-semibold text-foreground'>
-                    {/* {service.worshipLeaderName} */}
+                    {worshipLeader?.name || '...'}
                   </span>
                 </span>
               </div>
@@ -119,48 +166,89 @@ export default function ServiceDetailPage() {
             <CardHeader className='flex flex-row items-center justify-between'>
               <div>
                 <CardTitle className='text-xl md:text-2xl flex items-center gap-2'>
-                  <ListMusic /> Setlist
+                  <ListMusic /> {t('setlist')}
                 </CardTitle>
-                <CardDescription>
-                  The songs planned for this service.
-                </CardDescription>
+                <CardDescription>{t('setlistDesc')}</CardDescription>
               </div>
-              <Button variant='outline' size='sm'>
-                <PlusCircle className='mr-2 h-4 w-4' /> Add Songs
-              </Button>
             </CardHeader>
             <CardContent>
-              <div className='flex flex-col items-center justify-center text-center p-10 border-2 border-dashed rounded-lg bg-muted/50'>
-                <ListMusic className='h-12 w-12 text-muted-foreground mb-4' />
-                <h3 className='text-lg font-semibold'>No Songs Added</h3>
-                <p className='text-sm text-muted-foreground'>
-                  Add songs to build your setlist for this service.
-                </p>
-              </div>
+              {songs && songs.length > 0 ? (
+                <ul className='space-y-3'>
+                  {songs.map((song, index) => (
+                    <li
+                      key={song.id}
+                      className='flex items-center justify-between p-2 rounded-md hover:bg-muted/50'
+                    >
+                      <div className='flex items-center gap-3'>
+                        <span className='text-sm font-bold text-muted-foreground w-6 text-center'>
+                          {index + 1}.
+                        </span>
+                        <p className='font-medium'>{song.title}</p>
+                      </div>
+                      <div className='text-sm text-muted-foreground'>
+                        {t('key')}: {song.key}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className='flex flex-col items-center justify-center text-center p-10 border-2 border-dashed rounded-lg bg-muted/50'>
+                  <ListMusic className='h-12 w-12 text-muted-foreground mb-4' />
+                  <h3 className='text-lg font-semibold'>{t('noSongsAdded')}</h3>
+                  <p className='text-sm text-muted-foreground'>
+                    {t('noSongsAddedDesc')}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
           <Card>
             <CardHeader className='flex flex-row items-center justify-between'>
               <div>
                 <CardTitle className='text-xl md:text-2xl flex items-center gap-2'>
-                  <Users /> Team
+                  <Users /> {t('team')}
                 </CardTitle>
-                <CardDescription>
-                  The team scheduled for this service.
-                </CardDescription>
+                <CardDescription>{t('teamDesc')}</CardDescription>
               </div>
-              <Button variant='outline' size='sm'>
-                <PlusCircle className='mr-2 h-4 w-4' /> Schedule Team
-              </Button>
             </CardHeader>
             <CardContent>
-              <div className='flex flex-col items-center justify-center text-center p-10 border-2 border-dashed rounded-lg bg-muted/50'>
-                <Users className='h-12 w-12 text-muted-foreground mb-4' />
-                <h3 className='text-lg font-semibold'>No Team Scheduled</h3>
-                <p className='text-sm text-muted-foreground'>
-                  Schedule your team members for their roles.
-                </p>
-              </div>
+              {teamMembers && teamMembers.length > 0 ? (
+                <ul className='space-y-4'>
+                  {teamMembers.map((member) => (
+                    <li key={member.id} className='flex items-center gap-4'>
+                      <Avatar className='h-10 w-10'>
+                        <AvatarImage src={member.avatarUrl} alt={member.name} />
+                        <AvatarFallback>
+                          {member.name
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className='flex-grow'>
+                        <p className='font-semibold'>{member.name}</p>
+                        <p className='text-sm text-muted-foreground'>
+                          {member.id === service.worshipLeaderId
+                            ? t('worshipLeader')
+                            : Array.isArray(member.role)
+                            ? member.role.join(', ')
+                            : member.role}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className='flex flex-col items-center justify-center text-center p-10 border-2 border-dashed rounded-lg bg-muted/50'>
+                  <Users className='h-12 w-12 text-muted-foreground mb-4' />
+                  <h3 className='text-lg font-semibold'>
+                    {t('noTeamScheduled')}
+                  </h3>
+                  <p className='text-sm text-muted-foreground'>
+                    {t('noTeamScheduledDesc')}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

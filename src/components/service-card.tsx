@@ -5,19 +5,31 @@ import { Card, CardContent } from './ui/card';
 import Image from 'next/image';
 import type { Service, TeamMember } from '@/lib/placeholder-data';
 import { Timestamp } from 'firebase/firestore';
+import { useI18n } from '@/providers/i18n-provider';
+import { useAuth } from '@/firebase';
 
 export const ServiceCard = ({
   service,
   teamsMembers,
-  isUserInvolved,
 }: {
   service: Service;
   teamsMembers?: TeamMember[];
-  isUserInvolved: boolean;
 }) => {
-  console.log('service', service);
-  console.log('allUsers', teamsMembers);
-  const formatServiceDate = () => {
+  const { locale } = useI18n();
+  const { currentUser } = useAuth();
+
+  const isLeader = service.worshipLeaderId === currentUser?.uid;
+  const isParticipant =
+    isLeader ||
+    service.teams?.some((member) => member === currentUser?.uid) ||
+    false;
+  const isOver = service.date.toDate() < new Date();
+
+  const worshipLeader = teamsMembers?.find(
+    (member) => member.id === service.worshipLeaderId
+  );
+
+  const formattedDate = (() => {
     if (!(service.date instanceof Timestamp)) {
       return '';
     }
@@ -25,6 +37,9 @@ export const ServiceCard = ({
     const serviceDate = service.date.toDate();
     const currentYear = new Date().getFullYear();
     const serviceYear = serviceDate.getFullYear();
+    const today = new Date();
+    const diffTime = serviceDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     const options: Intl.DateTimeFormatOptions = {
       month: 'short',
@@ -35,14 +50,19 @@ export const ServiceCard = ({
       options.year = 'numeric';
     }
 
-    return serviceDate.toLocaleDateString('en-US', options);
-  };
+    if (diffDays >= 0 && diffDays <= 31) {
+      options.weekday = 'short';
+    }
+
+    return serviceDate.toLocaleDateString(locale, options);
+  })();
 
   return (
     <Card
       className={cn(
         'flex flex-col bg-card shadow-none border-0 h-full group p-1 rounded-3xl transition-all',
-        !isUserInvolved && 'grayscale hover:grayscale-0'
+        isOver && 'opacity-60',
+        !isOver && !isParticipant && 'grayscale hover:grayscale-0'
       )}
     >
       <div className='overflow-hidden rounded-3xl relative'>
@@ -56,12 +76,23 @@ export const ServiceCard = ({
         />
         <div className='absolute top-2 left-2'>
           <Badge className='mr-1' data-ai-hint='service date'>
-            {formatServiceDate()}
+            {formattedDate}
           </Badge>
           <Badge variant='secondary' className='bg-card'>
             {service.theme}
           </Badge>
         </div>
+        {worshipLeader && (
+          <div className='absolute bottom-2 right-2'>
+            <Avatar className='h-8 w-8 border-2 border-background'>
+              <AvatarImage
+                src={worshipLeader.avatarUrl}
+                alt={worshipLeader.name}
+              />
+              <AvatarFallback>{worshipLeader.name?.charAt(0)}</AvatarFallback>
+            </Avatar>
+          </div>
+        )}
       </div>
       <CardContent className='p-2 pt-3'>
         <div className='flex -space-x-2 overflow-hidden'>

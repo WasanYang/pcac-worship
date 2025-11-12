@@ -50,7 +50,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = React.useState(false);
 
   const userDocRef = useMemoFirebase(
-    () => (user ? doc(firestore, 'users', user.uid) : null),
+    () => (user ? doc(firestore, 'team_members', user.uid) : null),
     [firestore, user]
   );
   const { data: teamMember } = useDoc(userDocRef);

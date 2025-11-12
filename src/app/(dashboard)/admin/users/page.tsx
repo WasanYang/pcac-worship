@@ -52,7 +52,7 @@ export default function AdminPage() {
 
   const handleApproveUser = async (user: User) => {
     setApprovingUserId(user.uid);
-    setIsLoading(true);
+    setIsLoading(true); // This state is now used for both approve and revoke
 
     try {
       await updateUser({ uid: user.uid, payload: { status: 'approved' } });
@@ -66,6 +66,31 @@ export default function AdminPage() {
         variant: 'destructive',
         title: 'Approval Failed',
         description: 'Could not approve the user. Please try again.',
+      });
+    } finally {
+      setApprovingUserId(null);
+      setIsLoading(false);
+    }
+  };
+
+  const handleRevokeUser = async (user: User) => {
+    setApprovingUserId(user.uid);
+    setIsLoading(true);
+
+    try {
+      await updateUser({ uid: user.uid, payload: { status: 'pending' } });
+      toast({
+        title: 'User Access Revoked',
+        description: `${
+          user.displayName || user.email
+        } access has been revoked.`,
+      });
+    } catch (error) {
+      console.error('Error revoking user:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Revoke Failed',
+        description: 'Could not revoke user access. Please try again.',
       });
     } finally {
       setApprovingUserId(null);
@@ -170,9 +195,19 @@ export default function AdminPage() {
                           Approve
                         </Button>
                       ) : (
-                        <span className='flex items-center justify-end gap-2 text-sm text-green-600'>
-                          <CheckCircle className='h-4 w-4' /> Approved
-                        </span>
+                        <Button
+                          size='sm'
+                          variant='destructive'
+                          onClick={() => handleRevokeUser(user)}
+                          disabled={isLoading && approvingUserId === user.uid}
+                        >
+                          {isLoading && approvingUserId === user.uid ? (
+                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                          ) : (
+                            <CheckCircle className='mr-2 h-4 w-4' />
+                          )}
+                          Revoke
+                        </Button>
                       )}
                     </TableCell>
                   </TableRow>

@@ -7,6 +7,9 @@ import {
   updateDoc,
   setDoc,
   getFirestore,
+  deleteDoc,
+  query,
+  orderBy,
 } from 'firebase/firestore';
 import { getSdks } from '@/firebase';
 
@@ -44,9 +47,10 @@ export const userApi = createApi({
     getUsers: builder.query<User[], void>({
       async queryFn() {
         try {
-          const { firestore } = getSdks({} as any);
-          const usersCollectionRef = collection(firestore, 'users');
-          const querySnapshot = await getDocs(usersCollectionRef);
+          const firestore = getFirestore();
+          const usersCollection = collection(firestore, 'users');
+          const usersQuery = query(usersCollection, orderBy('email'));
+          const querySnapshot = await getDocs(usersQuery);
           const users: User[] = [];
           querySnapshot.forEach((doc) => {
             // Type assertion to ensure the document data matches the User interface
@@ -72,7 +76,7 @@ export const userApi = createApi({
     getUserById: builder.query<User, string>({
       async queryFn(uid) {
         try {
-          const { firestore } = getSdks({} as any);
+          const firestore = getFirestore();
           const userDocRef = doc(firestore, 'users', uid);
           const docSnap = await getDoc(userDocRef);
           if (!docSnap.exists()) {
@@ -98,27 +102,36 @@ export const userApi = createApi({
           const firestore = getFirestore(); // Use getSdks to access firestore instance
           const userDocRef = doc(firestore, 'users', uid);
           await updateDoc(userDocRef, payload);
-
           if (payload.status === 'approved') {
-            const userSnap = await getDoc(userDocRef);
-            const userData = userSnap.data() as User;
-
             const teamMemberDocRef = doc(firestore, 'team_members', uid);
-            await setDoc(teamMemberDocRef, {
-              id: uid,
-              userId: uid,
-              name:
-                userData.displayName ||
-                userData.email?.split('@')[0] ||
-                'New Member',
-              email: userData.email,
-              role: ['Team Member'], // Assign a default role
-              avatarUrl:
-                userData.photoURL ||
-                `https://picsum.photos/seed/${uid}/100/100`,
-              skills: [],
-              blockoutDates: [],
-            });
+            const teamMemberSnap = await getDoc(teamMemberDocRef);
+
+            if (!teamMemberSnap.exists()) {
+              const userSnap = await getDoc(userDocRef);
+              const userData = userSnap.data() as User;
+
+              await setDoc(teamMemberDocRef, {
+                id: uid,
+                userId: uid,
+                name:
+                  userData.displayName ||
+                  userData.email?.split('@')[0] ||
+                  'New Member',
+                email: userData.email,
+                role: ['Team Member'], // Assign a default role
+                avatarUrl:
+                  userData.photoURL ||
+                  `https://picsum.photos/seed/${uid}/100/100`,
+                skills: [],
+                blockoutDates: [],
+                status: 'active', // Set status to active on creation
+              });
+            } else {
+              await updateDoc(teamMemberDocRef, { status: 'active' });
+            }
+          } else if (payload.status === 'pending') {
+            const teamMemberDocRef = doc(firestore, 'team_members', uid);
+            await updateDoc(teamMemberDocRef, { status: 'inactive' });
           }
 
           return { data: 'success' };

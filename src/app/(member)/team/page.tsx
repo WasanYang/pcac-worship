@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { TeamMember } from '@/lib/placeholder-data';
 import { useI18n } from '@/providers/i18n-provider';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
@@ -17,7 +17,13 @@ export default function TeamPage() {
   const { t } = useI18n();
   const firestore = useFirestore();
   const teamMembersQuery = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'team_members') : null),
+    () =>
+      firestore
+        ? query(
+            collection(firestore, 'team_members'),
+            where('status', '==', 'active')
+          )
+        : null,
     [firestore]
   );
   const { data: allUsers } = useCollection<TeamMember>(teamMembersQuery);

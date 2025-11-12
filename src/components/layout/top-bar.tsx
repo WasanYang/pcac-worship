@@ -24,7 +24,6 @@ export function TopBar({ children, notificationCount = 1 }: TopBarProps) {
   const { title, subTitle } = useSelector(
     (state: RootState) => state.layout.header
   );
-  // TODO: Fetch real notifications
   const notifications = [
     { id: 1, message: 'You have been assigned to the service on Sunday.' },
     { id: 2, message: 'New song "Amazing Grace" has been added.' },

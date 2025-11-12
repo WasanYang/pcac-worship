@@ -25,7 +25,6 @@ export default function MainLayout({
 
   React.useEffect(() => {
     const checkUserStatus = async () => {
-      // ไม่ต้องตรวจสอบถ้ายังไม่มี user, firestore หรือถ้าอยู่ที่หน้า welcome อยู่แล้ว
       if (!user || !firestore || isWelcomePage) {
         return;
       }
@@ -33,7 +32,6 @@ export default function MainLayout({
       const userDocRef = doc(firestore, 'users', user.uid);
       const userDocSnap = await getDoc(userDocRef);
 
-      // ถ้าข้อมูล user ไม่มีในระบบ หรือ status ไม่ใช่ 'approved' ให้ redirect
       if (!userDocSnap.exists() || userDocSnap.data()?.status !== 'approved') {
         router.push('/welcome');
       }

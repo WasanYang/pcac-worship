@@ -1,7 +1,5 @@
 'use client';
 
-import Image from 'next/image';
-import { Card, CardContent } from '@/components/ui/card';
 import { useI18n } from '@/providers/i18n-provider';
 import Link from 'next/link';
 import {
@@ -12,10 +10,7 @@ import {
 } from '@/firebase';
 import { collection, query, where, documentId } from 'firebase/firestore';
 import type { Service, TeamMember } from '@/lib/placeholder-data';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMemo } from 'react';
-import { cn } from '@/lib/utils';
 import { ServiceCard } from '@/components/service-card';
 
 export default function ServicesPage() {
@@ -30,9 +25,10 @@ export default function ServicesPage() {
 
   const uniqueTeamMemberIds = useMemo(() => {
     if (!services) return [];
-    const allIds = services.flatMap(
-      (service) => service.team?.map((member) => member.memberId) || []
-    );
+    const allIds = services.flatMap((service) => [
+      service.worshipLeaderId,
+      ...(service.teams?.map((member) => member) || []),
+    ]);
     return [...new Set(allIds)];
   }, [services]);
 
@@ -46,9 +42,8 @@ export default function ServicesPage() {
         : null,
     [firestore, uniqueTeamMemberIds]
   );
-  const { data: allUsers, isLoading: isLoadingTeam } =
-    useCollection<TeamMember>(teamMembersQuery);
-
+  const { data: allUsers } = useCollection<TeamMember>(teamMembersQuery);
+  console.log('allUsers', allUsers);
   return (
     <div className='flex flex-col gap-8'>
       {isLoading && (
@@ -65,31 +60,18 @@ export default function ServicesPage() {
 
       {!isLoading && services && services.length === 0 && (
         <div className='flex flex-col items-center justify-center text-center p-10 border-2 border-dashed rounded-lg bg-muted/50'>
-          <h3 className='text-lg font-semibold'>No Services Found</h3>
+          <h3 className='text-lg font-semibold'>{t('noServicesFound')}</h3>
           <p className='text-sm text-muted-foreground'>
-            Create a new service to get started.
+            {t('noServicesFoundDescMember')}
           </p>
         </div>
       )}
 
       <div className='grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4'>
         {services?.map((service) => {
-          const isLeader = service.worshipLeaderId === currentUser?.uid;
-          const isInTeam =
-            service.team?.some(
-              (member) => member.memberId === currentUser?.uid
-            ) || false;
-          const isOver = service.date.toDate() < new Date();
-
-          const isUserInvolved = (isLeader || isInTeam) && !isOver;
-
           return (
             <Link href={`/services/${service.id}`} key={service.id}>
-              <ServiceCard
-                service={service}
-                teamsMembers={allUsers || []}
-                isUserInvolved={isUserInvolved}
-              />
+              <ServiceCard service={service} teamsMembers={allUsers || []} />
             </Link>
           );
         })}

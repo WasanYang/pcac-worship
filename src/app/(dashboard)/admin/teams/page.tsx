@@ -21,7 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, MoreHorizontal } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, doc, updateDoc } from 'firebase/firestore';
+import { collection, doc, query, updateDoc, where } from 'firebase/firestore';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,8 +46,13 @@ interface TeamMember {
 const AVAILABLE_ROLES = [
   'Admin',
   'Worship Leader',
-  'Musician',
   'Vocalist',
+  'Acoustic Guitar',
+  'Electric Guitar',
+  'Bass',
+  'Drums',
+  'Keyboard',
+  'Piano',
   'Media',
   'Sound',
 ];
@@ -64,7 +69,13 @@ export default function AdminTeamsPage() {
     error: membersError,
   } = useCollection<TeamMember>(
     useMemoFirebase(
-      () => (firestore ? collection(firestore, 'team_members') : null),
+      () =>
+        firestore
+          ? query(
+              collection(firestore, 'team_members'),
+              where('status', '==', 'active')
+            )
+          : null,
       [firestore]
     )
   );
