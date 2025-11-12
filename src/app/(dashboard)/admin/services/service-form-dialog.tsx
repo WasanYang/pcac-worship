@@ -125,11 +125,11 @@ export function ServiceFormDialog({
           worshipLeaderId: service.worshipLeaderId || '',
           imageUrl: service.imageUrl || '',
           imageFile: undefined,
-          team: service.team?.map((t) => t.memberId) || [],
+          team: service.teams?.map((t) => t) || [],
         });
-        if (teamMembers && service.team) {
+        if (teamMembers && service.teams) {
           const preselectedTeam = teamMembers.filter((user) =>
-            service.team?.some((teamMember) => teamMember.memberId === user.id)
+            service.teams?.some((teamMember) => teamMember === user.id)
           );
           setSelectedTeam(preselectedTeam);
         }
