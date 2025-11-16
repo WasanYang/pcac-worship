@@ -144,8 +144,38 @@ export const userApi = createApi({
         { type: 'User', id: 'LIST' },
       ],
     }),
+    /**
+     * Deletes a user's documents from Firestore.
+     * This deletes from both 'users' and 'team_members' collections.
+     * Note: This does NOT delete the user from Firebase Authentication.
+     * That requires a backend function with admin privileges.
+     */
+    deleteUser: builder.mutation<string, string>({
+      async queryFn(uid) {
+        try {
+          const firestore = getFirestore();
+          const userDocRef = doc(firestore, 'users', uid);
+          const teamMemberDocRef = doc(firestore, 'team_members', uid);
+
+          await deleteDoc(userDocRef);
+          await deleteDoc(teamMemberDocRef);
+
+          return { data: 'success' };
+        } catch (error: any) {
+          return { error: { status: 'CUSTOM_ERROR', error: error.message } };
+        }
+      },
+      invalidatesTags: (result, error, uid) => [
+        { type: 'User', id: uid },
+        { type: 'User', id: 'LIST' },
+      ],
+    }),
   }),
 });
 
-export const { useGetUsersQuery, useGetUserByIdQuery, useUpdateUserMutation } =
-  userApi;
+export const {
+  useGetUsersQuery,
+  useGetUserByIdQuery,
+  useUpdateUserMutation,
+  useDeleteUserMutation,
+} = userApi;

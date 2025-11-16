@@ -1,9 +1,9 @@
 {
+  "user": "User",
   "prasiri": "Prasiri",
   "dashboard": "Dashboard",
   "songs": "Songs",
   "services": "Services",
-  "team": "Team",
   "accountability": "Accountability",
   "settings": "Settings",
   "language": "Language",
@@ -66,15 +66,45 @@
   "lastPlayed": "Last Played",
   "teamMembersDesc": "Manage your worship team members and their roles.",
   "addMember": "Add Member",
+  "members": "members",
   "skills": "Skills",
   "billing": "Billing",
   "logOut": "Log out",
   "admin": "Admin",
+  "view_all": "View all",
+  "admin.dashboard.title": "Admin Dashboard",
+  "admin.dashboard.description": "An overview of your worship management system.",
+  "admin.dashboard.view_all": "View all",
+  "upcoming_services_desc": "The next 5 scheduled worship services.",
+  "admin.dashboard.error_loading": "Error loading data.",
+  "admin.dashboard.no_upcoming_services": "No upcoming services.",
+  "pending_approvals_desc": "Users waiting for access approval.",
+  "admin.dashboard.no_pending_approvals": "No users are waiting for approval.",
+  "admin.users.description": "Approve new users to grant them access to the dashboard.",
+  "admin.users.all_users": "All System Users",
+  "admin.users.all_users_desc": "List of all users in the system. You can edit their roles here.",
+  "admin.users.toggle_menu": "Toggle menu",
+  "admin.users.actions": "Actions",
+  "admin_approve": "Approve",
+  "admin.users.revoke": "Revoke Access",
+  "admin_users_approve_success_title": "User Approved",
+  "admin.users.approve_success_desc": "{name} has been granted access.",
+  "admin.users.approve_failed_title": "Approval Failed",
+  "admin.users.approve_failed_desc": "Could not approve the user. Please try again.",
+  "admin.users.delete": "Delete User",
+  "admin.users.confirm_delete_title": "Are you absolutely sure?",
+  "admin.users.confirm_delete_desc": "This will permanently delete the user {name} and all associated data. This action cannot be undone.",
+  "admin.users.delete_success_title": "User Deleted",
+  "admin.users.delete_success_desc": "User {name} has been permanently deleted.",
+  "admin.users.delete_failed_title": "Deletion Failed",
+  "admin.users.delete_failed_desc": "Could not delete the user. Please try again.",
   "myUpcomingServices": "My Upcoming Services",
   "mySkills": "My Skills",
   "noUpcomingServices": "No Upcoming Services",
   "noUpcomingServicesDesc": "You are not scheduled for any upcoming services.",
   "noSkillsTracked": "No skills are being tracked currently.",
+  "searchMember": "Search member...",
+  "noMemberFound": "No member found.",
   "accountabilityGroup": "Accountability Group",
   "noAccountabilityGroup": "You are not in any accountability group yet.",
 
@@ -95,5 +125,55 @@
   "teamMemberNotFoundDesc": "The user you are looking for does not exist.",
   "backToTeam": "Back to Team",
   "noSkillsForMember": "This member has no skills recorded yet.",
-  "noUpcomingServicesForMember": "This member has no upcoming services."
+  "noUpcomingServicesForMember": "This member has no upcoming services.",
+  "team": {
+    "title": "Team",
+    "tabs": {
+      "team": "Team",
+      "care_groups": "Care Groups"
+    },
+    "list": {
+      "more_roles": "+{count} more"
+    }
+  },
+  "peer_groups": {
+    "list": {
+      "member_count": "{count} members",
+      "title": "Peer Groups"
+    },
+    "detail": {
+      "title": "Care Group",
+      "notFound": "Group Not Found",
+      "notFoundDesc": "The care group you are looking for does not exist.",
+      "members": "Members"
+    },
+    "admin": {
+      "title": "Peer Groups",
+      "description": "Manage all peer groups in the system.",
+      "manage": "Manage",
+      "back_to_list": "Back to Peer Groups",
+      "manage_leader": "Manage Leader",
+      "change_leader": "Change Leader",
+      "add_member": "Add Member",
+      "confirm_remove_title": "Are you sure?",
+      "confirm_remove_desc": "Are you sure you want to remove {name} from this group?",
+      "remove": "Remove",
+      "member_removed": "Member removed successfully.",
+      "remove_failed": "Failed to remove member.",
+      "member_added": "Member added successfully.",
+      "add_failed": "Failed to add member.",
+      "leader_changed": "Leader changed successfully.",
+      "change_leader_failed": "Failed to change leader.",
+      "create_new_group": "Create New Group",
+      "group_details": "Group Details",
+      "group_name": "Group Name",
+      "select_leader": "Select a leader",
+      "create_error_title": "Incomplete Information",
+      "create_error_desc": "Please provide a group name and select a leader.",
+      "create_success_title": "Group Created",
+      "create_success_desc": "Group \"{name}\" has been created successfully.",
+      "create_failed": "Failed to create group.",
+      "select_members": "Select members"
+    }
+  }
 }

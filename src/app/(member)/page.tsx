@@ -7,11 +7,7 @@ import { useI18n } from '@/providers/i18n-provider';
 import { useUser, useDoc, useCollection, useMemoFirebase } from '@/firebase';
 import { doc, collection, query, where, orderBy } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import type {
-  Service,
-  TeamMember,
-  AccountabilityGroup,
-} from '@/lib/placeholder-data';
+import type { Service, TeamMember, PeerGroup } from '@/lib/placeholder-data';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
@@ -92,7 +88,7 @@ export default function Dashboard() {
   const {
     data: accountabilityGroups,
     isLoading: isLoadingAccountabilityGroups,
-  } = useCollection<AccountabilityGroup>(accountabilityGroupsQuery);
+  } = useCollection<PeerGroup>(accountabilityGroupsQuery);
 
   const currentAccountabilityGroup = accountabilityGroups?.[0];
   const groupLeaderRef = useMemoFirebase(

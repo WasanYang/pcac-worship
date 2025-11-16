@@ -21,18 +21,37 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Loader2 } from 'lucide-react';
+import { MoreHorizontal, Loader2 } from 'lucide-react';
 import {
   useGetUsersQuery,
   useUpdateUserMutation,
+  useDeleteUserMutation,
   User,
 } from '@/lib/features/user/user-api';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function AdminPage() {
   const { t } = useI18n();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
   const [approvingUserId, setApprovingUserId] = useState<string | null>(null);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
 
   const {
     data: allUsers,
@@ -40,6 +59,7 @@ export default function AdminPage() {
     error: usersError,
   } = useGetUsersQuery();
   const [updateUser] = useUpdateUserMutation();
+  const [deleteUser] = useDeleteUserMutation();
 
   const sortedUsers = useMemo(() => {
     if (!allUsers) return [];
@@ -52,7 +72,6 @@ export default function AdminPage() {
 
   const handleApproveUser = async (user: User) => {
     setApprovingUserId(user.uid);
-    setIsLoading(true); // This state is now used for both approve and revoke
 
     try {
       await updateUser({ uid: user.uid, payload: { status: 'approved' } });
@@ -69,13 +88,11 @@ export default function AdminPage() {
       });
     } finally {
       setApprovingUserId(null);
-      setIsLoading(false);
     }
   };
 
   const handleRevokeUser = async (user: User) => {
     setApprovingUserId(user.uid);
-    setIsLoading(true);
 
     try {
       await updateUser({ uid: user.uid, payload: { status: 'pending' } });
@@ -94,7 +111,31 @@ export default function AdminPage() {
       });
     } finally {
       setApprovingUserId(null);
-      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deletingUser) return;
+
+    setApprovingUserId(deletingUser.uid); // Reuse for loading state
+    try {
+      await deleteUser(deletingUser.uid).unwrap();
+      toast({
+        title: t('admin.users.delete_success_title'),
+        description: t('admin.users.delete_success_desc', {
+          name: deletingUser.displayName || deletingUser.email || '',
+        }),
+      });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast({
+        variant: 'destructive',
+        title: t('admin.users.delete_failed_title'),
+        description: t('admin.users.delete_failed_desc'),
+      });
+    } finally {
+      setApprovingUserId(null);
+      setDeletingUser(null);
     }
   };
 
@@ -183,32 +224,50 @@ export default function AdminPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className='text-right'>
-                      {user.status !== 'approved' ? (
-                        <Button
-                          size='sm'
-                          onClick={() => handleApproveUser(user)}
-                          disabled={isLoading && approvingUserId === user.uid}
-                        >
-                          {isLoading && approvingUserId === user.uid ? (
-                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                          ) : null}
-                          Approve
-                        </Button>
-                      ) : (
-                        <Button
-                          size='sm'
-                          variant='destructive'
-                          onClick={() => handleRevokeUser(user)}
-                          disabled={isLoading && approvingUserId === user.uid}
-                        >
-                          {isLoading && approvingUserId === user.uid ? (
-                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            aria-haspopup='true'
+                            size='icon'
+                            variant='ghost'
+                            disabled={approvingUserId === user.uid}
+                          >
+                            {approvingUserId === user.uid ? (
+                              <Loader2 className='h-4 w-4 animate-spin' />
+                            ) : (
+                              <MoreHorizontal className='h-4 w-4' />
+                            )}
+                            <span className='sr-only'>
+                              {t('admin.users.toggle_menu')}
+                            </span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align='end'>
+                          <DropdownMenuLabel>
+                            {t('admin.users.actions')}
+                          </DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {user.status !== 'approved' ? (
+                            <DropdownMenuItem
+                              onClick={() => handleApproveUser(user)}
+                            >
+                              {t('admin_approve')}
+                            </DropdownMenuItem>
                           ) : (
-                            <CheckCircle className='mr-2 h-4 w-4' />
+                            <DropdownMenuItem
+                              onClick={() => handleRevokeUser(user)}
+                            >
+                              {t('admin.users.revoke')}
+                            </DropdownMenuItem>
                           )}
-                          Revoke
-                        </Button>
-                      )}
+                          <DropdownMenuItem
+                            className='text-destructive'
+                            onClick={() => setDeletingUser(user)}
+                          >
+                            {t('admin.users.delete')}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
@@ -217,6 +276,29 @@ export default function AdminPage() {
           </Table>
         </CardContent>
       </Card>
+      <AlertDialog
+        open={!!deletingUser}
+        onOpenChange={(open) => !open && setDeletingUser(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('admin.users.confirm_delete_title')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('admin.users.confirm_delete_desc', {
+                name: deletingUser?.displayName || deletingUser?.email || '',
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteUser}>
+              {t('admin.users.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -62,13 +62,12 @@ export type TeamMember = {
   blockoutDates?: string[];
 };
 
-export type AccountabilityGroup = {
+export type PeerGroup = {
   id: string;
   name: string;
   leaderId: string;
   leaderName: string;
   memberIds: string[];
-  members: { id: string; contactStatus: 'Contacted' | 'Pending' | 'Missed' }[];
 };
 
 export const recentSongs: Song[] = [

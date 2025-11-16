@@ -51,7 +51,7 @@ export default function MainLayout({
       return t(currentNavItem.labelKey as any);
     }
     if (pathname.startsWith('/settings')) return t('settings');
-    if (pathname.startsWith('/team/')) return t('team');
+    if (pathname.startsWith('/team/')) return t('team.title');
     if (pathname.startsWith('/admin')) return t('admin');
     return 'Worship Flow';
   };

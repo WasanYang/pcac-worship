@@ -7,19 +7,26 @@ import { UserNav } from '@/components/layout/user-nav';
 import {
   Music,
   Users,
-  Music2,
   LayoutDashboard,
   UsersRound,
+  HeartHandshake,
+  CalendarDays,
+  Music2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/providers/i18n-provider';
 
 const adminNavItems = [
   { href: '/admin', icon: LayoutDashboard, labelKey: 'dashboard' },
-  { href: '/admin/users', icon: Users, labelKey: 'users' },
-  { href: '/admin/teams', icon: UsersRound, labelKey: 'teams' },
+  { href: '/admin/users', icon: Users, labelKey: 'user' },
+  { href: '/admin/teams', icon: UsersRound, labelKey: 'team.title' },
+  {
+    href: '/admin/peer-groups',
+    icon: HeartHandshake,
+    labelKey: 'peer_groups.admin.title',
+  },
   { href: '/admin/songs', icon: Music2, labelKey: 'songs' },
-  { href: '/admin/services', icon: Music2, labelKey: 'services' },
+  { href: '/admin/services', icon: CalendarDays, labelKey: 'services' },
 ];
 
 export default function AdminLayout({

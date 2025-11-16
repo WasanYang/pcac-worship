@@ -14,7 +14,7 @@ import { usePathname } from 'next/navigation';
 export const navItems = [
   { href: '/', labelKey: 'dashboard', icon: LayoutDashboard },
   { href: '/services', labelKey: 'services', icon: Calendar },
-  { href: '/team', labelKey: 'team', icon: Users },
+  { href: '/team', labelKey: 'team.title', icon: Users },
   { href: '/profile', labelKey: 'profile', icon: User },
 
   //   { href: '/songs', labelKey: 'songs', icon: ListMusic },

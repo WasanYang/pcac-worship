@@ -206,7 +206,7 @@ export default function ServiceDetailPage() {
             <CardHeader className='flex flex-row items-center justify-between'>
               <div>
                 <CardTitle className='text-xl md:text-2xl flex items-center gap-2'>
-                  <Users /> {t('team')}
+                  <Users /> {t('team.title')}
                 </CardTitle>
                 <CardDescription>{t('teamDesc')}</CardDescription>
               </div>

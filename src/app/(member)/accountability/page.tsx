@@ -27,7 +27,7 @@ import {
   updateDoc,
   deleteDoc,
 } from 'firebase/firestore';
-import type { TeamMember, AccountabilityGroup } from '@/lib/placeholder-data';
+import type { TeamMember, PeerGroup } from '@/lib/placeholder-data';
 import { useToast } from '@/hooks/use-toast';
 import { AccountabilityGroupDialog } from './_components/AccountabilityGroupDialog';
 import {
@@ -48,16 +48,14 @@ export default function AccountabilityPage() {
   const { toast } = useToast();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingGroup, setEditingGroup] = useState<AccountabilityGroup | null>(
-    null
-  );
+  const [editingGroup, setEditingGroup] = useState<PeerGroup | null>(null);
 
   const peerGroupsQuery = useMemoFirebase(
     () => (firestore ? collection(firestore, 'peer_groups') : null),
     [firestore]
   );
   const { data: accountabilityGroups, isLoading: isLoadingGroups } =
-    useCollection<AccountabilityGroup>(peerGroupsQuery);
+    useCollection<PeerGroup>(peerGroupsQuery);
 
   const teamMembersQuery = useMemoFirebase(
     () => (firestore ? collection(firestore, 'team_members') : null),
@@ -65,7 +63,7 @@ export default function AccountabilityPage() {
   );
   const { data: teamMembers } = useCollection<TeamMember>(teamMembersQuery);
 
-  const handleOpenDialog = (group: AccountabilityGroup | null = null) => {
+  const handleOpenDialog = (group: PeerGroup | null = null) => {
     setEditingGroup(group);
     setIsDialogOpen(true);
   };
