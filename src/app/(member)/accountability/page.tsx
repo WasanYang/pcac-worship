@@ -85,20 +85,12 @@ export default function AccountabilityPage() {
         // Update existing group
         const groupDocRef = doc(firestore, 'peer_groups', editingGroup.id);
         const leader = teamMembers?.find((m) => m.id === values.leaderId);
-        const membersData = values.memberIds.map((id) => {
-          const existingMember = editingGroup.members.find((m) => m.id === id);
-          return {
-            id,
-            contactStatus: existingMember?.contactStatus || 'Pending',
-          };
-        });
 
         await updateDoc(groupDocRef, {
           name: values.name,
           leaderId: values.leaderId,
           leaderName: leader?.name || 'Unknown',
           memberIds: values.memberIds,
-          members: membersData,
         });
 
         toast({
@@ -166,26 +158,6 @@ export default function AccountabilityPage() {
     if (!firestore || !accountabilityGroups) return;
     const group = accountabilityGroups.find((g) => g.id === groupId);
     if (!group) return;
-
-    const updatedMembers = group.members.map((member) =>
-      member.id === memberId ? { ...member, contactStatus: newStatus } : member
-    );
-
-    try {
-      const groupDocRef = doc(firestore, 'peer_groups', groupId);
-      await updateDoc(groupDocRef, { members: updatedMembers });
-      toast({
-        title: 'Status Updated',
-        description: `Status for a member in "${group.name}" has been updated.`,
-      });
-    } catch (error) {
-      console.error('Error updating status:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not update the status.',
-      });
-    }
   };
 
   return (
@@ -281,77 +253,7 @@ export default function AccountabilityPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <ul className='space-y-4'>
-                  {group.members.map((member) => {
-                    const memberInfo = teamMembers?.find(
-                      (m) => m.id === member.id
-                    );
-                    if (!memberInfo) return null;
-
-                    const roles = Array.isArray(memberInfo.role)
-                      ? memberInfo.role
-                      : [memberInfo.role];
-
-                    return (
-                      <li
-                        key={member.id}
-                        className='flex items-center justify-between'
-                      >
-                        <div className='flex items-center gap-3'>
-                          <Avatar className='h-9 w-9'>
-                            <AvatarImage
-                              src={memberInfo?.avatarUrl}
-                              alt={memberInfo.name}
-                              data-ai-hint='person portrait'
-                            />
-                            <AvatarFallback>
-                              {memberInfo.name
-                                .split(' ')
-                                .map((n) => n[0])
-                                .join('')}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className='font-medium'>{memberInfo.name}</p>
-                            <p className='text-sm text-muted-foreground'>
-                              {roles.join(', ')}
-                            </p>
-                          </div>
-                        </div>
-                        <div className='flex items-center gap-2'>
-                          <span className='text-sm text-muted-foreground'>
-                            {t('status')}:
-                          </span>
-                          <Select
-                            defaultValue={member.contactStatus}
-                            onValueChange={(value) =>
-                              handleStatusChange(
-                                group.id,
-                                member.id,
-                                value as any
-                              )
-                            }
-                          >
-                            <SelectTrigger className='w-[120px] h-8 text-xs'>
-                              <SelectValue placeholder={t('status')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value='Contacted'>
-                                {t('contacted')}
-                              </SelectItem>
-                              <SelectItem value='Pending'>
-                                {t('pending')}
-                              </SelectItem>
-                              <SelectItem value='Missed'>
-                                {t('missed')}
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
+                <div>To be implemented</div>
               </CardContent>
             </Card>
           );
