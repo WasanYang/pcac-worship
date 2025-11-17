@@ -1,24 +1,27 @@
 'use client';
 
-import { updateDoc } from 'firebase/firestore';
 import { Card, CardContent } from '@/components/ui/card';
-import * as React from 'react';
+import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useRef, useTransition } from 'react';
 import {
+  updateDocumentNonBlocking,
   useAuth,
   useDoc,
   useFirestore,
   useMemoFirebase,
   useUser,
 } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   ChevronRight,
   Check,
+  Camera,
   Edit,
   HelpCircle,
   Languages,
   LogOut,
+  Loader2,
   Settings,
 } from 'lucide-react';
 import {
@@ -33,30 +36,30 @@ import { useI18n } from '@/providers/i18n-provider';
 import { signOut } from 'firebase/auth';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Separator } from '@/components/ui/separator';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { deleteFile, uploadFile } from '@/lib/features/user/user-services';
+import { toast } from '@/hooks/use-toast';
+import { TeamMember } from '@/lib/placeholder-data';
+const MEMBER_PROFILE_PATH = 'team/avatar/';
 
 export default function ProfilePage() {
   const { user } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
   const { t, locale, setLocale } = useI18n();
+  const router = useRouter();
 
-  const [displayName, setDisplayName] = React.useState('');
-  const [isEditing, setIsEditing] = React.useState(false);
+  const [displayName, setDisplayName] = useState('');
+  const [isPending, startTransition] = useTransition();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const userDocRef = useMemoFirebase(
     () => (user ? doc(firestore, 'team_members', user.uid) : null),
     [firestore, user]
   );
-  const { data: teamMember } = useDoc(userDocRef);
+  const { data: teamMember } = useDoc<TeamMember>(userDocRef);
 
   const getInitials = (name?: string | null) => {
-    // Use displayName state if available, as it's the most up-to-date
     if (displayName) {
       name = displayName;
     }
@@ -67,7 +70,7 @@ export default function ProfilePage() {
       .join('');
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     const currentName = teamMember?.name || user?.displayName || '';
     if (currentName) {
       setDisplayName(currentName);
@@ -80,17 +83,86 @@ export default function ProfilePage() {
     }
   };
 
-  const handleNameSave = async () => {
-    if (userDocRef && displayName !== (teamMember?.name || user?.displayName)) {
-      try {
-        await updateDoc(userDocRef, {
-          name: displayName,
-        });
-        setIsEditing(false);
-      } catch (error) {
-        console.error('Error updating name: ', error);
-      }
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (file: File | null) => {
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      // 5MB limit
+      toast({
+        variant: 'destructive',
+        title: 'File too large',
+        description: 'Please upload an image smaller than 5MB.',
+      });
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const dataUri = reader.result as string;
+
+      try {
+        console.log('Attempting to delete old banner...');
+        try {
+          if (teamMember?.avatarUrl) {
+            await deleteFile({ path: teamMember.avatarUrl });
+          }
+          console.log('Old banner deleted successfully.');
+        } catch (error: any) {
+          if (
+            error.code === 404 ||
+            (error.message && error.message.includes('404'))
+          ) {
+            console.warn('Old banner not found, proceeding with upload.');
+          } else {
+            throw error;
+          }
+        }
+
+        const { url } = await uploadFile({
+          fileDataUri: dataUri,
+          path: `${MEMBER_PROFILE_PATH}${user?.uid}/${file.name}`,
+        });
+
+        const finalUrl = `${
+          url.split('?')[0]
+        }?alt=media&t=${new Date().getTime()}`;
+
+        if (userDocRef) {
+          updateDocumentNonBlocking(userDocRef, { avatarUrl: finalUrl });
+        }
+
+        toast({ title: 'Success', description: 'New banner image uploaded.' });
+      } catch (error) {
+        console.error('Upload process failed:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Upload failed',
+          description:
+            'Could not upload the new banner image. Please try again.',
+        });
+      } finally {
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleNameSubmit = async (formData: FormData) => {
+    startTransition(async () => {
+      try {
+        console.log('Submitting name:', formData.get('displayName'));
+        if (userDocRef) {
+          updateDocumentNonBlocking(userDocRef, {
+            name: formData.get('displayName'),
+          });
+        }
+      } catch (error) {
+        console.error('Error updating name:', error);
+      }
+    });
   };
 
   const menuItems = [
@@ -137,50 +209,75 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className='flex flex-col h-full'>
+    <div className='flex flex-col h-full justify-between'>
       <div className='flex flex-col items-center gap-6 pt-4'>
-        <Avatar className='h-24 w-24 border-2 border-primary'>
-          <AvatarImage
-            src={user?.photoURL || teamMember?.avatarUrl || ''}
-            alt={user?.displayName || 'User'}
-          />
-          <AvatarFallback className='text-3xl'>
-            {getInitials(user?.displayName || teamMember?.name)}
-          </AvatarFallback>
-        </Avatar>
-
-        <div className='text-center group relative'>
+        <div
+          className='relative group cursor-pointer'
+          onClick={handleAvatarClick}
+        >
+          <Avatar className='h-24 w-24 border-2 border-primary'>
+            <AvatarImage
+              src={teamMember?.avatarUrl || ''}
+              alt={teamMember?.name || 'User'}
+            />
+            <AvatarFallback className='text-3xl'>
+              {getInitials(user?.displayName || teamMember?.name)}
+            </AvatarFallback>
+          </Avatar>
+          <div className='absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity'>
+            {isPending ? (
+              <Loader2 className='h-8 w-8 text-white animate-spin' />
+            ) : (
+              <Camera className='h-8 w-8 text-white' />
+            )}
+          </div>
           <input
-            type='text'
-            value={displayName}
-            onChange={(e) => {
-              setDisplayName(e.target.value);
-              setIsEditing(true);
-            }}
-            className='text-2xl font-bold text-center bg-transparent border-none focus:ring-1 focus:ring-primary focus:rounded-md outline-none w-full max-w-xs'
-            aria-label='Display Name'
+            type='file'
+            ref={fileInputRef}
+            onChange={(e) =>
+              handleFileChange(e.target.files ? e.target.files[0] : null)
+            }
+            className='hidden'
+            accept='image/*'
           />
-          {isEditing &&
-          displayName !== (teamMember?.name || user?.displayName) ? (
-            <Button
-              variant='ghost'
-              size='icon'
-              className='absolute -right-10 top-1/2 -translate-y-1/2 h-8 w-8'
-              onClick={handleNameSave}
-            >
-              <Check className='h-5 w-5 text-green-500' />
-            </Button>
-          ) : (
-            <div className='absolute -right-10 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity'>
-              <Edit className='h-5 w-5 text-muted-foreground' />
-            </div>
-          )}
-          <p className='text-muted-foreground'>{user?.email}</p>
         </div>
+
+        <form
+          ref={formRef}
+          action={handleNameSubmit}
+          className='text-center group relative'
+        >
+          <div className='relative'>
+            <input
+              type='text'
+              name='displayName'
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              className='text-2xl font-bold text-center bg-transparent border-none focus:ring-1 focus:ring-primary focus:rounded-md outline-none w-full max-w-xs'
+              aria-label='Display Name'
+            />
+            {displayName !== (teamMember?.name || user?.displayName) && (
+              <Button
+                type='submit'
+                variant='ghost'
+                size='icon'
+                className='absolute -right-10 top-1/2 -translate-y-1/2 h-8 w-8'
+                disabled={isPending}
+              >
+                {isPending ? (
+                  <Loader2 className='h-5 w-5 animate-spin' />
+                ) : (
+                  <Check className='h-5 w-5 text-green-500' />
+                )}
+              </Button>
+            )}
+          </div>
+          <p className='text-muted-foreground mt-1'>{user?.email}</p>
+        </form>
       </div>
 
-      <div className='mt-auto w-full absolute bottom-16 p-4 left-0'>
-        <Card className='w-full rounded-xl !border-0'>
+      <div className='px-4 pb-4'>
+        <Card className='w-full max-w-md mx-auto rounded-xl !border-0'>
           <CardContent className='p-2 !border-0'>
             <div className='w-full space-y-1'>
               {menuItems.map((item) => (

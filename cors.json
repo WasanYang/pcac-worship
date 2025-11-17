@@ -1,0 +1,11 @@
+[
+  {
+    "origin": [
+      "http://localhost:9002",
+      "https://pcac-worship--studio-7303019413-59816.asia-southeast1.hosted.app/"
+    ],
+    "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "responseHeader": ["Content-Type", "Authorization", "X-Goog-Resumable"],
+    "maxAgeSeconds": 3600
+  }
+]

@@ -11,7 +11,6 @@ import {
   query,
   orderBy,
 } from 'firebase/firestore';
-import { getSdks } from '@/firebase';
 
 /**
  * Represents the structure of a user document in Firestore.
