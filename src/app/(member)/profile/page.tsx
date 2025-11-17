@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
+import 'react-image-crop/dist/ReactCrop.css';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useRef, useTransition } from 'react';
 import {
@@ -31,6 +32,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/providers/i18n-provider';
 import { signOut } from 'firebase/auth';
@@ -39,6 +47,13 @@ import { Separator } from '@/components/ui/separator';
 import { deleteFile, uploadFile } from '@/lib/features/user/user-services';
 import { toast } from '@/hooks/use-toast';
 import { TeamMember } from '@/lib/placeholder-data';
+import ReactCrop, {
+  centerCrop,
+  makeAspectCrop,
+  type Crop,
+  type PixelCrop,
+} from 'react-image-crop';
+import { canvasPreview } from '@/lib/crop-image';
 const MEMBER_PROFILE_PATH = 'team/avatar/';
 
 export default function ProfilePage() {
@@ -46,12 +61,16 @@ export default function ProfilePage() {
   const auth = useAuth();
   const firestore = useFirestore();
   const { t, locale, setLocale } = useI18n();
-  const router = useRouter();
 
   const [displayName, setDisplayName] = useState('');
   const [isPending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [imgSrc, setImgSrc] = useState('');
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+  const [isCropping, setIsCropping] = useState(false);
 
   const userDocRef = useMemoFirebase(
     () => (user ? doc(firestore, 'team_members', user.uid) : null),
@@ -87,10 +106,22 @@ export default function ProfilePage() {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (file: File | null) => {
+  const getPathFromUrl = (url: string): string | null => {
+    try {
+      const urlObject = new URL(url);
+      const pathName = urlObject.pathname;
+      const matches = pathName.match(/\/o\/(.+?)(?=\?|$)/);
+      return matches && matches[1] ? decodeURIComponent(matches[1]) : null;
+    } catch (error) {
+      console.error('Invalid URL for getPathFromUrl:', error);
+      return null;
+    }
+  };
+
+  const onSelectFile = (file: File | null) => {
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 10 * 1024 * 1024) {
       // 5MB limit
       toast({
         variant: 'destructive',
@@ -100,60 +131,97 @@ export default function ProfilePage() {
       return;
     }
 
+    setCrop(undefined); // Makes crop preview update between images
     const reader = new FileReader();
-    reader.onloadend = async () => {
-      const dataUri = reader.result as string;
-
-      try {
-        console.log('Attempting to delete old banner...');
-        try {
-          if (teamMember?.avatarUrl) {
-            await deleteFile({ path: teamMember.avatarUrl });
-          }
-          console.log('Old banner deleted successfully.');
-        } catch (error: any) {
-          if (
-            error.code === 404 ||
-            (error.message && error.message.includes('404'))
-          ) {
-            console.warn('Old banner not found, proceeding with upload.');
-          } else {
-            throw error;
-          }
-        }
-
-        const { url } = await uploadFile({
-          fileDataUri: dataUri,
-          path: `${MEMBER_PROFILE_PATH}${user?.uid}/${file.name}`,
-        });
-
-        const finalUrl = `${
-          url.split('?')[0]
-        }?alt=media&t=${new Date().getTime()}`;
-
-        if (userDocRef) {
-          updateDocumentNonBlocking(userDocRef, { avatarUrl: finalUrl });
-        }
-
-        toast({ title: 'Success', description: 'New banner image uploaded.' });
-      } catch (error) {
-        console.error('Upload process failed:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Upload failed',
-          description:
-            'Could not upload the new banner image. Please try again.',
-        });
-      } finally {
-      }
-    };
+    reader.addEventListener('load', () => {
+      setImgSrc(reader.result?.toString() || '');
+      setIsCropping(true);
+    });
     reader.readAsDataURL(file);
+  };
+
+  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    const { width, height } = e.currentTarget;
+    const crop = centerCrop(
+      makeAspectCrop({ unit: '%', width: 90 }, 1, width, height),
+      width,
+      height
+    );
+    setCrop(crop);
+  }
+
+  const handleSaveCrop = async () => {
+    const image = imgRef.current;
+    if (!image || !completedCrop) {
+      return;
+    }
+
+    const canvas = document.createElement('canvas');
+    await canvasPreview(image, canvas, completedCrop);
+
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          console.error('Canvas is empty');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const dataUri = reader.result as string;
+          startTransition(async () => {
+            setIsCropping(false);
+            try {
+              const oldPath =
+                teamMember?.avatarUrl && getPathFromUrl(teamMember.avatarUrl);
+              if (oldPath) {
+                await deleteFile({ path: oldPath });
+              }
+            } catch (error: any) {
+              if (
+                error.code === 404 ||
+                (error.message && error.message.includes('404'))
+              ) {
+                console.warn('Old avatar not found, proceeding with upload.');
+              } else {
+                throw error;
+              }
+            }
+
+            try {
+              const { url } = await uploadFile({
+                fileDataUri: dataUri,
+                path: `${MEMBER_PROFILE_PATH}${user?.uid}/profile.webp`,
+              });
+
+              const finalUrl = `${
+                url.split('?')[0]
+              }?alt=media&t=${new Date().getTime()}`;
+
+              if (userDocRef) {
+                await updateDocumentNonBlocking(userDocRef, {
+                  avatarUrl: finalUrl,
+                });
+              }
+              toast({
+                title: 'Success',
+                description: 'Profile picture updated.',
+              });
+            } catch (error) {
+              console.error('Upload process failed:', error);
+              toast({ variant: 'destructive', title: 'Upload failed' });
+            }
+          });
+        };
+        reader.readAsDataURL(blob);
+      },
+      'image/webp',
+      0.9
+    );
   };
 
   const handleNameSubmit = async (formData: FormData) => {
     startTransition(async () => {
       try {
-        console.log('Submitting name:', formData.get('displayName'));
         if (userDocRef) {
           updateDocumentNonBlocking(userDocRef, {
             name: formData.get('displayName'),
@@ -210,6 +278,54 @@ export default function ProfilePage() {
 
   return (
     <div className='flex flex-col h-full justify-between'>
+      <Dialog open={isCropping} onOpenChange={setIsCropping}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Crop your new profile picture</DialogTitle>
+          </DialogHeader>
+          {imgSrc && (
+            <div className='flex justify-center'>
+              <ReactCrop
+                crop={crop}
+                onChange={(_, percentCrop) => setCrop(percentCrop)}
+                onComplete={(c) => setCompletedCrop(c)}
+                aspect={1}
+                circularCrop
+              >
+                <img
+                  ref={imgRef}
+                  alt='Crop me'
+                  src={imgSrc}
+                  onLoad={onImageLoad}
+                  style={{ maxHeight: '70vh' }}
+                />
+              </ReactCrop>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant='outline'
+              onClick={() => {
+                setIsCropping(false);
+                setImgSrc('');
+              }}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveCrop}
+              disabled={!completedCrop || isPending}
+            >
+              {isPending ? (
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+              ) : null}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className='flex flex-col items-center gap-6 pt-4'>
         <div
           className='relative group cursor-pointer'
@@ -234,9 +350,7 @@ export default function ProfilePage() {
           <input
             type='file'
             ref={fileInputRef}
-            onChange={(e) =>
-              handleFileChange(e.target.files ? e.target.files[0] : null)
-            }
+            onChange={(e) => onSelectFile(e.target.files?.[0] || null)}
             className='hidden'
             accept='image/*'
           />
